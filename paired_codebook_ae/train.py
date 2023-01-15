@@ -50,7 +50,7 @@ def main(cfg: VSADecoderConfig) -> None:
 
     # Learning rate monitor
     lr_monitor = LearningRateMonitor(logging_interval='step')
-    gen_viz_callback = GeneralizationVisualizationCallback(cfg.dataset.path_to_dataset)
+    gen_viz_callback = GeneralizationVisualizationCallback(path_to_data_dir=cfg.dataset.path_to_dataset)
 
     callbacks = [
 
