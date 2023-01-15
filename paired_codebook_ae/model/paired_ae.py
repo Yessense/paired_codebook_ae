@@ -55,7 +55,6 @@ class VSADecoder(pl.LightningModule):
         self.exchange_module = ExchangeModule()
         self.loss_f = F.mse_loss
 
-        self.softmax = nn.Softmax(dim=1)
 
         if cfg.model.binder == 'fourier':
             self.binder = FourierBinder(placeholders=self.codebook.placeholders)

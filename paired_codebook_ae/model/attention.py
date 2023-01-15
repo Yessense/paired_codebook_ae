@@ -22,6 +22,7 @@ class AttentionModule(pl.LightningModule):
         else:
             self.scale = scale
 
+        self.softmax = nn.Softmax(dim=1)
         self.q_proj = nn.ModuleList([nn.Linear(latent_dim, latent_dim) for _ in
                                      range(n_features)])
         self.k_proj = nn.ModuleList([nn.Linear(latent_dim, latent_dim) for _ in
