@@ -3,5 +3,5 @@ stages:
     cmd: python3 -m paired_codebook_ae.train
     deps:
       - conf/config.yaml
-      - paired_codebook/model/
-      - paired_codebook/train.py
+      - paired_codebook_ae/model/
+      - paired_codebook_ae/train.py
