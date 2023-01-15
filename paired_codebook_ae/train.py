@@ -2,8 +2,6 @@ import os
 import pathlib
 import sys
 
-from paired_codebook_ae.callbacks.logger import GeneralizationVisualizationCallback
-
 sys.path.append("..")
 
 import hydra
@@ -15,8 +13,7 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
-from .utils import find_best_model
-from .dataset.generalization_dsprites import GeneralizationDspritesDataModule
+from .callbacks.logger import GeneralizationVisualizationCallback
 from .dataset.paired_dsprites import PairedDspritesDatamodule
 from .model.paired_ae import VSADecoder
 from .config import VSADecoderConfig
