@@ -42,7 +42,7 @@ class ExperimentConfig:
     steps_per_epoch: int = 0
     accelerator: str = 'gpu'
     devices: List[int] = field(default_factory=lambda: [1])
-    max_epochs: int = 175
+    max_epochs: int = 300
     profiler: Optional[str] = None
     gradient_clip: float = 0.0
     logging_dir: str = "${hydra:run.dir}/"
