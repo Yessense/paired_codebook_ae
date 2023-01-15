@@ -32,8 +32,7 @@ class GeneralizationVisualizationCallback(pl.Callback):
                 [0, 4, 10, 31, 31],
             ]
 
-        print(path_to_dsprites)
-        dataset = Dsprites(path_to_dsprites)
+        dataset = Dsprites(path_to_data_dir)
         self.samples = []
         for label in samples:
             img, _ = dataset[dataset.get_element_pos(label)]
