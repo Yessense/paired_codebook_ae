@@ -54,7 +54,7 @@ def main(cfg: VSADecoderConfig) -> None:
         path_to_data_dir=cfg.dataset.path_to_dataset + '/dsprites/dsprites.npz')
 
     callbacks = [
-        gen_viz_callback,
+        # gen_viz_callback,
 
         top_metric_callback,
         every_epoch_callback,
