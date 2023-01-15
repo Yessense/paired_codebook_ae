@@ -32,7 +32,6 @@ class GeneralizationVisualizationCallback(pl.Callback):
                 [0, 4, 10, 31, 31],
             ]
 
-        path_to_dsprites = os.path.join(path_to_data_dir, '/dsprites/dsprites.npz')
         print(path_to_dsprites)
         dataset = Dsprites(path_to_dsprites)
         self.samples = []
