@@ -38,7 +38,7 @@ class GeneralizationVisualizationCallback(pl.Callback):
             img, _ = dataset[dataset.get_element_pos(label)]
             self.samples.append(img)
 
-        self.samples = torch.stack(samples)
+        self.samples = torch.tensor(samples)
 
     def on_validation_epoch_end(self, trainer, pl_module) -> None:
 
