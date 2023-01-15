@@ -2,6 +2,8 @@ import os
 import pathlib
 import sys
 
+from paired_codebook_ae.callbacks.logger import GeneralizationVisualizationCallback
+
 sys.path.append("..")
 
 import hydra
