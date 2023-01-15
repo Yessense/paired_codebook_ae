@@ -42,7 +42,7 @@ class GeneralizationVisualizationCallback(pl.Callback):
 
     def on_validation_epoch_end(self, trainer, pl_module) -> None:
 
-        z = pl_module.encode(self.samples)
+        z = pl_module.encoder(self.samples)
         z, _ = pl_module.attention(z)
         z = pl_module.binder(z)
         z = torch.sum(z, dim=1)
