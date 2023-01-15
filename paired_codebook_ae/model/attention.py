@@ -45,6 +45,5 @@ class AttentionModule(pl.LightningModule):
         values = [torch.matmul(attention[i], self.vsa_features[i].to(self.device))
                   for i in range(self.n_features)]
         values = torch.stack(values, dim=1)
-        values = self.binder(values)
 
         return values, max_values
