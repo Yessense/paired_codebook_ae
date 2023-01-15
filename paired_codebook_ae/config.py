@@ -41,7 +41,7 @@ class ExperimentConfig:
     batch_size: int = 64
     steps_per_epoch: int = 0
     accelerator: str = 'gpu'
-    devices: List[int] = field(default_factory=lambda: [0])
+    devices: List[int] = field(default_factory=lambda: [1])
     max_epochs: int = 175
     profiler: Optional[str] = None
     gradient_clip: float = 0.0
