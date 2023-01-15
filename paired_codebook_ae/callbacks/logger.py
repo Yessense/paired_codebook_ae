@@ -11,7 +11,6 @@ from paired_codebook_ae.dataset.dsprites import Dsprites
 class GeneralizationVisualizationCallback(pl.Callback):
     def __init__(self, samples: Optional[List] = None,
                  path_to_data_dir: str = './data/'):
-        print(path_to_data_dir)
         if samples is None:
             # shape, scale, orientation, x, y
             samples = [
@@ -34,6 +33,7 @@ class GeneralizationVisualizationCallback(pl.Callback):
             ]
 
         path_to_dsprites = os.path.join(path_to_data_dir, '/dsprites/dsprites.npz')
+        print(path_to_dsprites)
         dataset = Dsprites(path_to_dsprites)
         self.samples = []
         for label in samples:
