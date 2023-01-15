@@ -1,12 +1,16 @@
+import os.path
 from typing import List, Optional
 
 import pytorch_lightning as pl
 import torch
 import wandb
 
+from paired_codebook_ae.dataset.dsprites import Dsprites
+
 
 class GeneralizationVisualizationCallback(pl.Callback):
-    def __init__(self, samples: Optional[List] = None):
+    def __init__(self, samples: Optional[List] = None,
+                 path_to_data_dir: str = './data/'):
         if samples is None:
             # shape, scale, orientation, x, y
             samples = [
@@ -27,11 +31,24 @@ class GeneralizationVisualizationCallback(pl.Callback):
                 [0, 4, 10, 31, 0],
                 [0, 4, 10, 31, 31],
             ]
-        self.samples = torch.LongTensor(samples)
+
+        path_to_dsprites = os.path.join(path_to_data_dir, '/dsprites/dsprites.npz')
+        dataset = Dsprites(path_to_dsprites)
+        self.samples = []
+        for label in samples:
+            img, _ = dataset[dataset.get_element_pos(label)]
+            self.samples.append(img)
+
+        self.samples = torch.stack(samples)
 
     def on_validation_epoch_end(self, trainer, pl_module) -> None:
-        recons = pl_module(self.samples)
+
+        z = pl_module.encode(self.samples)
+        z, _ = pl_module.attention(z)
+        z = pl_module.binder(z)
+        z = torch.sum(z, dim=1)
+        recons = pl_module.decode(torch.sum(z, dim=1))
+
         trainer.logger.experiment.log({
             'reconstructions': [wandb.Image(img) for img in recons]
         })
-

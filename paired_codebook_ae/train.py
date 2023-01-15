@@ -51,11 +51,14 @@ def main(cfg: VSADecoderConfig) -> None:
 
     # Learning rate monitor
     lr_monitor = LearningRateMonitor(logging_interval='step')
+    gen_viz_callback = GeneralizationVisualizationCallback(cfg.dataset.path_to_dataset)
 
     callbacks = [
+
         top_metric_callback,
         every_epoch_callback,
         lr_monitor,
+
     ]
 
     wandb_logger = WandbLogger(
