@@ -30,7 +30,7 @@ class ModelConfig:
     latent_dim: int = 1024
     image_size: Tuple[int, int, int] = (1, 64, 64)
     binder: str = "fourier"
-    monitor: str = "Validation/MSE Loss"
+    monitor: str = "Validation/Total"
 
 
 @dataclass
