@@ -64,8 +64,7 @@ def make_pair_dsprites_indices(train_size: int,
 
         # Conditional generalization:
         # No Square shape on right
-        if img_idx in used_indices or (
-                img_labels[0] == 0 and img_labels[3] >= 16):
+        if img_idx in used_indices:
             i += 1
             continue
 
@@ -75,8 +74,7 @@ def make_pair_dsprites_indices(train_size: int,
         pair_img_labels = get_pair(img_labels, max_exchanges)
         pair_img_idx = Dsprites.get_element_pos(pair_img_labels)
 
-        while ((pair_img_idx in used_indices)
-               or (pair_img_labels[0] == 0 and pair_img_labels[3] >= 16)):
+        while pair_img_idx in used_indices:
             pair_img_labels = get_pair(img_labels, max_exchanges)
             pair_img_idx = Dsprites.get_element_pos(pair_img_labels)
 
@@ -276,7 +274,7 @@ def cli():
     elif args.mode == 'show_dataset':
         plot_dataset(dsprites_path=args.path_to_dsprites_train,
                      paired_dsprites_path=args.save_path,
-                     show_test=True)
+                     show_test=False)
     else:
         raise ValueError("Wrong mode")
 

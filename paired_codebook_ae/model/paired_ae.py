@@ -47,14 +47,12 @@ class VSADecoder(pl.LightningModule):
                                  latent_dim=cfg.model.latent_dim,
                                  seed=cfg.experiment.seed)
 
-        self.layer_norms = nn.ModuleList([nn.LayerNorm(cfg.model.latent_dim)])
         self.attention = AttentionModule(vsa_features=self.codebook.vsa_features,
-                                                n_features=cfg.dataset.n_features,
-                                                latent_dim=cfg.model.latent_dim,
-                                                scale=None)
+                                         n_features=cfg.dataset.n_features,
+                                         latent_dim=cfg.model.latent_dim,
+                                         scale=None)
         self.exchange_module = ExchangeModule()
         self.loss_f = F.mse_loss
-
 
         if cfg.model.binder == 'fourier':
             self.binder = FourierBinder(placeholders=self.codebook.placeholders)
@@ -119,10 +117,10 @@ class VSADecoder(pl.LightningModule):
         self.log(f"{mode}/iou donor", iou_donor)
 
         self.logger.experiment.log(
-            {f"{mode}/image max" + Dsprites.feature_names[i]: image_max_values[i] for i in
-             range(self.cfg.dataset.n_features)})
+            {f"{mode}/image max " + Dsprites.feature_names[i]: image_max_values[i] for i in
+             range(self.cfg.dataset.n_features)}, commit=False)
         self.logger.experiment.log(
-            {f"{mode}/donor max" + Dsprites.feature_names[i]: donor[i] for i in
+            {f"{mode}/donor max " + Dsprites.feature_names[i]: donor_max_values[i] for i in
              range(self.cfg.dataset.n_features)})
 
         if log_images(batch_idx):

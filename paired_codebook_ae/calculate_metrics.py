@@ -2,6 +2,7 @@ import os
 import pathlib
 
 import hydra
+import torch
 import wandb
 from hydra.core.config_store import ConfigStore
 from omegaconf import OmegaConf
@@ -10,10 +11,11 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
+from .dataset.paired_dsprites import PairedDspritesDatamodule
 from .utils import find_best_model
 from .dataset.generalization_dsprites import GeneralizationDspritesDataModule
 from .dataset.dsprites import DspritesDatamodule
-from .model.vsa_decoder import VSADecoder
+from .model.paired_ae import VSADecoder
 from .config import VSADecoderConfig
 
 cs = ConfigStore.instance()
@@ -26,20 +28,12 @@ path_to_dataset = pathlib.Path().absolute()
 def main(cfg: VSADecoderConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     seed_everything(cfg.experiment.seed)
-    cfg.metrics.metrics_dir = "outputs/2023-01-12/19-02-51/"
+    cfg.metrics.metrics_dir = "/home/yessense/data/paired_codebook_ae/outputs/2023-01-15/21-52-26"
 
-    if cfg.dataset.mode == 'dsprites':
-        datamodule = DspritesDatamodule(
-            path_to_data_dir=path_to_dataset / cfg.dataset.path_to_dataset,
-            batch_size=cfg.experiment.batch_size,
-            train_size=cfg.dataset.train_size,
-            val_size=cfg.dataset.val_size)
-    elif cfg.dataset.mode == 'generalization dsprites':
-        datamodule = GeneralizationDspritesDataModule(
-            path_to_data_dir=path_to_dataset / cfg.dataset.path_to_dataset,
-            batch_size=cfg.experiment.batch_size,
-            train_size=cfg.dataset.train_size,
-            val_size=cfg.dataset.val_size)
+    if cfg.dataset.mode == 'paired_dsprites':
+        datamodule = PairedDspritesDatamodule(
+            path_to_data_dir=cfg.dataset.path_to_dataset,
+            batch_size=cfg.experiment.batch_size)
     else:
         raise NotImplemented(f"Wrong dataset mode {cfg.dataset.path_to_dataset!r}")
 
@@ -48,6 +42,7 @@ def main(cfg: VSADecoderConfig) -> None:
             os.path.join(cfg.metrics.metrics_dir, "checkpoints"))
 
     print(cfg.metrics.ckpt_path)
+    di = torch.load(cfg.metrics.ckpt_path)
 
     model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
 

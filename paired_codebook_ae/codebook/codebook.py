@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 import torch
+from torch import nn
 from torch.utils.data import Dataset
 
 from . import vsa
@@ -14,7 +15,7 @@ class Feature:
     density: float = 1.
 
 
-class Codebook:
+class Codebook(nn.Module):
     features: List[Feature]
     latent_dim: int
     codebook: List[torch.tensor]
@@ -30,18 +31,9 @@ class Codebook:
                                     contiguous=contiguous))
         return features
 
-    @property
-    def placeholders(self) -> torch.tensor:
-        return self.codebook[0]
-
-    @property
-    def vsa_features(self) -> List[torch.tensor]:
-        return self.codebook[1:]
-
-    def __init__(self, features: List[Feature],
-                 latent_dim: int,
-                 seed: int = 0,
+    def __init__(self, features: List[Feature], latent_dim: int, seed: int = 0,
                  device: torch.device = torch.device('cpu')):
+        super().__init__()
         torch.manual_seed(seed)
         self.device = device
         self.features = features
@@ -51,8 +43,7 @@ class Codebook:
         self.features.insert(0, placeholders)
 
         self.latent_dim = latent_dim
-        self.codebook = []
-        self.features_count = []
+        codebook = []
 
         for feature in features:
             feature_vectors = torch.zeros((feature.n_values, latent_dim),
@@ -68,7 +59,11 @@ class Codebook:
             else:
                 for i in range(feature.n_values):
                     feature_vectors[i] = vsa.generate(self.latent_dim)
-            self.codebook.append(feature_vectors)
+            codebook.append(feature_vectors)
+
+        self.placeholders = nn.Parameter(codebook[0])
+        self.vsa_features = nn.ParameterList(
+            [nn.Parameter(feature_vectors) for feature_vectors in codebook[1:]])
 
 
 if __name__ == '__main__':

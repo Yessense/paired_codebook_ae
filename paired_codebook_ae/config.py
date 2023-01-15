@@ -41,7 +41,7 @@ class ExperimentConfig:
     batch_size: int = 64
     steps_per_epoch: int = 0
     accelerator: str = 'gpu'
-    devices: List[int] = field(default_factory=lambda: [1])
+    devices: List[int] = field(default_factory=lambda: [0])
     max_epochs: int = 300
     profiler: Optional[str] = None
     gradient_clip: float = 0.0
@@ -53,7 +53,7 @@ class ExperimentConfig:
 class CheckpointsConfig:
     save_top_k: int = 1
     every_k_epochs: int = 10
-    check_val_every_n_epochs: int = 5
+    check_val_every_n_epochs: int = 1
     ckpt_path: Optional[str] = None
 
 
