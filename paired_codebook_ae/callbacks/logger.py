@@ -49,5 +49,5 @@ class GeneralizationVisualizationCallback(pl.Callback):
         recons = pl_module.decode(torch.sum(z, dim=1))
 
         trainer.logger.experiment.log({
-            'reconstructions': [wandb.Image(img) for img in recons]
+            'Validation/reconstructions': [wandb.Image(img) for img in recons]
         })

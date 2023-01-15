@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.optim import lr_scheduler
 
+from .attention import AttentionModule
 from .exchange import ExchangeModule
 from ..metrics.vsa import vsa_decoding_accuracy
 from ..utils import iou_pytorch
@@ -47,15 +48,12 @@ class VSADecoder(pl.LightningModule):
                                  seed=cfg.experiment.seed)
 
         self.layer_norms = nn.ModuleList([nn.LayerNorm(cfg.model.latent_dim)])
-        self.q_proj = nn.ModuleList([nn.Linear(cfg.model.latent_dim, cfg.model.latent_dim) for _ in
-                                     range(cfg.dataset.n_features)])
+        self.attention = AttentionModule(vsa_features=self.codebook.vsa_features,
+                                                n_features=cfg.dataset.n_features,
+                                                latent_dim=cfg.model.latent_dim,
+                                                scale=None)
         self.exchange_module = ExchangeModule()
         self.loss_f = F.mse_loss
-
-        if self.cfg.experiment.scale == 'sqrt':
-            self.scale = (cfg.model.latent_dim) ** 0.5
-        else:
-            self.scale = float(cfg.experiment.scale)
 
         self.softmax = nn.Softmax(dim=1)
 
@@ -65,28 +63,6 @@ class VSADecoder(pl.LightningModule):
             raise NotImplemented(f"Wrong binder type {cfg.model.binder}")
 
         self.save_hyperparameters()
-
-    def attention(self, x):
-        query: List[torch.tensor] = [self.q_proj[i](x) for i in range(self.cfg.dataset.n_features)]
-
-        features: List[torch.tensor] = [feature.to(self.device) for feature in
-                                        self.codebook.vsa_features]
-
-        k: torch.tensor
-        attn_logits = [torch.matmul(query[i], key.transpose(-2, -1)) for i, key in
-                       enumerate(features)]
-        attn_logits = [logit * self.scale for logit in attn_logits]
-        attention = [self.softmax(logit) for logit in attn_logits]
-
-        max_values = [torch.mean(torch.max(attn, dim=1).values) for attn in attention]
-
-        values = [torch.matmul(attention[i], features[i]) for i in
-                  range(self.cfg.dataset.n_features)]
-
-        values = torch.stack(values, dim=1)
-        values = self.binder(values)
-
-        return values, max_values
 
     def step(self, batch, batch_idx, mode: str = 'Train') -> torch.tensor:
         # Logging period
