@@ -160,11 +160,12 @@ class PairedDspritesDatamodule(pl.LightningDataModule):
     test_dataset: Dataset
 
     def __init__(self, path_to_data_dir: str = '../data/',
-                 batch_size: int = 64):
+                 batch_size: int = 64,
+                 mode: str = "paired_dsprites"):
         super().__init__()
         path_to_data_dir = Path(path_to_data_dir)
         self.path_to_dsprites_dataset = str(path_to_data_dir / 'dsprites' / 'dsprites.npz')
-        self.path_to_paired_dsprites_dir = path_to_data_dir / 'paired_dsprites'
+        self.path_to_paired_dsprites_dir = path_to_data_dir / mode
         self.batch_size = batch_size
         self.image_size = (1, 64, 64)
 
