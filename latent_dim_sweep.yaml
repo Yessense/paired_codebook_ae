@@ -1,0 +1,18 @@
+program: paired_codebook_ae.train
+method: grid
+metric:
+  goal: maximize
+  name: "Validation/Total"
+parameters:
+  model.latent_dim:
+    values: [ 16, 32, 64, 128, 256, 512, 1024, 2048 ]
+  experiment.max_epochs:
+    value: 200
+  experiment.log_training_graph:
+    value: false
+
+command:
+  - python
+  - -m
+  - ${program}
+  - ${args_no_hyphens}
