@@ -161,36 +161,38 @@ class VSADecoder(pl.LightningModule):
         self.labels = []
 
     def test_step(self, batch, batch_idx):
-        image, labels = batch
+        if batch_idx == 0:
+            image: torch.tensor
+            image_labels: torch.tensor
+            donor: torch.tensor
+            donor_labels: torch.tensor
+            exchange_labels: torch.tensor
 
-        z = self.encoder(image)
-        latent_features, max_values = self.attention(z)
-        latent_vectors = torch.sum(latent_features, dim=1)
+            (image, donor), (image_labels, donor_labels), exchange_labels = batch
 
-        return latent_vectors, latent_features, labels
+            image_latent = self.encoder(image)
+            image_features, _ = self.attention(image_latent)
 
-    def on_test_batch_end(self,
-                          outputs: Optional[STEP_OUTPUT],
-                          batch: Any,
-                          batch_idx: int,
-                          dataloader_idx: int) -> None:
-        latent_vectors, latent_features, labels = outputs
+            n_samples = 1
+            for i in range(n_samples):
+                for feature_idx, feature_name in enumerate(Dsprites.feature_names):
+                    img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
+                                            self.cfg.dataset.n_features,
+                                            self.cfg.model.latent_dim).to(self.device)
 
-        self.latent_vectors.append(latent_vectors)
-        self.latent_features.append(latent_features)
-        self.labels.append(labels)
+                    for feature_number, feature_value in enumerate(
+                            self.codebook.vsa_features[feature_idx]):
+                        img_batch[feature_number] = image_features[i]
+                        img_batch[feature_number, feature_idx] = feature_value
 
-    def on_test_end(self) -> None:
-        self.latent_vectors = torch.cat(self.latent_vectors)
-        self.latent_features = torch.cat(self.latent_features)
-        self.labels = torch.cat(self.labels)
-
-        vsa_accuracy = vsa_decoding_accuracy(placeholders=self.binder.hd_placeholders.squeeze(0),
-                                             codebook=self.codebook.vsa_features,
-                                             latent_vectors=self.latent_vectors,
-                                             labels=self.labels,
-                                             device=self.device)
-        self.logger.experiment.log(vsa_accuracy)
+                    img_batch = self.binder(img_batch)
+                    img_batch = torch.sum(img_batch, dim=1)
+                    img_batch = self.decoder(img_batch)
+                    self.logger.experiment.log({
+                        feature_name: [wandb.Image(im) for im in img_batch]
+                    })
+        else:
+            return
 
 
 cs = ConfigStore.instance()

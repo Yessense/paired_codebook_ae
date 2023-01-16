@@ -42,7 +42,6 @@ def main(cfg: VSADecoderConfig) -> None:
             os.path.join(cfg.metrics.metrics_dir, "checkpoints"))
 
     print(cfg.metrics.ckpt_path)
-    di = torch.load(cfg.metrics.ckpt_path)
 
     model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
 
@@ -62,8 +61,7 @@ def main(cfg: VSADecoderConfig) -> None:
                          )
 
     trainer.test(model,
-                 datamodule=datamodule,
-                 ckpt_path=cfg.checkpoint.ckpt_path)
+                 datamodule=datamodule)
 
 
 if __name__ == '__main__':
