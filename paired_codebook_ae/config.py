@@ -61,6 +61,7 @@ class CheckpointsConfig:
 class MetricsConfig:
     metrics_dir: str = "${hydra:run.dir}/"
     ckpt_path: str = ''
+    n_samples: int = 4
 
 
 @dataclass
