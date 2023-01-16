@@ -41,7 +41,7 @@ def main(cfg: VSADecoderConfig) -> None:
         cfg.metrics.ckpt_path = find_best_model(
             os.path.join(cfg.metrics.metrics_dir, "checkpoints"))
 
-    print(cfg.metrics.ckpt_path)
+    # print(cfg.metrics.ckpt_path)
 
     model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
 
