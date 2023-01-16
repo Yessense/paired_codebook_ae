@@ -173,7 +173,7 @@ class VSADecoder(pl.LightningModule):
             image_latent = self.encoder(image)
             image_features, _ = self.attention(image_latent)
 
-            n_samples = 1
+            n_samples = 4
             for i in range(n_samples):
                 for feature_idx, feature_name in enumerate(Dsprites.feature_names):
                     img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
