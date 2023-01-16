@@ -190,7 +190,7 @@ class VSADecoder(pl.LightningModule):
                     img_batch = self.decoder(img_batch)
                     self.logger.experiment.log({
                         feature_name: [wandb.Image(im) for im in img_batch]
-                    })
+                    }, commit=feature_idx == len(Dsprites.feature_names))
         else:
             return
 
