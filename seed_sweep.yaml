@@ -8,6 +8,8 @@ parameters:
     values: [ 1, 2, 3, 4 ]
   experiment.max_epochs:
     value: 200
+  experiment.log_training_graph:
+    value: false
 
 command:
   - python

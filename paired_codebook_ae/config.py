@@ -47,6 +47,7 @@ class ExperimentConfig:
     gradient_clip: float = 0.0
     logging_dir: str = "${hydra:run.dir}/"
     scale: str = 'sqrt'
+    log_training_graph: bool = True
 
 
 @dataclass
