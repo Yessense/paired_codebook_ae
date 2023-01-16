@@ -27,13 +27,12 @@ def main(cfg: VSADecoderConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     seed_everything(cfg.experiment.seed)
 
-    if cfg.dataset.mode == 'paired_dsprites':
-        datamodule = PairedDspritesDatamodule(
-            path_to_data_dir=cfg.dataset.path_to_dataset,
-            batch_size=cfg.experiment.batch_size,
-            mode=cfg.dataset.mode)
-    else:
-        raise NotImplemented(f"Wrong dataset mode {cfg.dataset.path_to_dataset!r}")
+    datamodule = PairedDspritesDatamodule(
+        path_to_data_dir=cfg.dataset.path_to_dataset,
+        batch_size=cfg.experiment.batch_size,
+        mode=cfg.dataset.mode)
+    # else:
+    #     raise NotImplemented(f"Wrong dataset mode {cfg.dataset.path_to_dataset!r}")
 
     cfg.experiment.steps_per_epoch = cfg.dataset.train_size // cfg.experiment.batch_size
 
