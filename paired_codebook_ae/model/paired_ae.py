@@ -176,8 +176,8 @@ class VSADecoder(pl.LightningModule):
             n_samples = 4
             for i in range(n_samples):
                 self.logger.experiment.log({
-                    "image": wandb.Image(image[i])
-                })
+                    "image": [wandb.Image(image[i])]
+                }, commit=False)
                 for feature_idx, feature_name in enumerate(Dsprites.feature_names):
                     img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
                                             self.cfg.dataset.n_features,
@@ -191,9 +191,10 @@ class VSADecoder(pl.LightningModule):
                     img_batch = self.binder(img_batch)
                     img_batch = torch.sum(img_batch, dim=1)
                     img_batch = self.decoder(img_batch)
+                    commit = feature_idx == (len(Dsprites.feature_names) - 1)
                     self.logger.experiment.log({
                         feature_name: [wandb.Image(im) for im in img_batch]
-                    })
+                    }, commit=commit)
         else:
             return
 
