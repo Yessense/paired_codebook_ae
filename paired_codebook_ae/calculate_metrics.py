@@ -28,7 +28,7 @@ path_to_dataset = pathlib.Path().absolute()
 def main(cfg: VSADecoderConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     seed_everything(cfg.experiment.seed)
-    cfg.metrics.metrics_dir = "/home/yessense/data/paired_codebook_ae/outputs/2023-01-15/21-52-26"
+    # cfg.metrics.metrics_dir = "/home/yessense/data/paired_codebook_ae/outputs/2023-01-15/21-52-26"
 
     if cfg.dataset.mode == 'paired_dsprites':
         datamodule = PairedDspritesDatamodule(
