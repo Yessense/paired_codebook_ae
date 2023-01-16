@@ -1,0 +1,16 @@
+program: paired_codebook_ae.train
+method: grid
+metric:
+  goal: maximize
+  name: "Validation/Total"
+parameters:
+  experiment.seed:
+    values: [ 1, 2, 3, 4 ]
+  experiment.max_epochs:
+    value: 200
+
+command:
+  - python
+  - -m
+  - ${program}
+  - ${args_no_hyphens}

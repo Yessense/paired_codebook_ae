@@ -1,3 +1,6 @@
 experiment:
   devices:
     - 0
+
+metrics:
+  metrics_dir: /home/yessense/data/paired_codebook_ae/outputs/2023-01-15/21-52-26
