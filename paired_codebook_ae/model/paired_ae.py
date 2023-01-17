@@ -101,8 +101,8 @@ class VSADecoder(pl.LightningModule):
         recon_image_like = self.decoder(torch.sum(image_like_binded, dim=1))
         recon_donor_like = self.decoder(torch.sum(donor_like_binded, dim=1))
 
-        image_loss = self.loss_f(recon_image_like, image)
-        donor_loss = self.loss_f(recon_donor_like, donor)
+        image_loss = self.loss_f(recon_image_like, image, reduction=self.cfg.experiment.reduction)
+        donor_loss = self.loss_f(recon_donor_like, donor, reduction=self.cfg.experiment.reduction)
         total_loss = (image_loss + donor_loss) * 0.5  # + self.kld_coef * kld_loss
 
         iou_image = iou_pytorch(recon_image_like, image)

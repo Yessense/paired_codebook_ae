@@ -93,6 +93,7 @@ class ExperimentConfig:
     logging_dir: str = "${hydra:run.dir}/"
     scale: str = 'sqrt'
     log_training_graph: bool = True
+    reduction: str = 'sum'
 
 
 @dataclass
