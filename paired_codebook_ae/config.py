@@ -1,15 +1,61 @@
 from dataclasses import dataclass, field
 from typing import Tuple, Optional, List
+
+from omegaconf import MISSING
+
+import paired_codebook_ae.dataset
 from paired_codebook_ae.dataset.paired_dsprites import Dsprites
 
 
 @dataclass
+class DatamoduleConfig:
+    _target_: str = MISSING
+    batch_size: int = field(default_factory=lambda: ExperimentConfig.batch_size)
+    mode: str = MISSING
+
+
+@dataclass
+class PairedClevrDatamoduleConfig(DatamoduleConfig):
+    _target_: str = 'paired_codebook_ae.dataset.PairedClevrDatamodule'
+    path_to_data_dir: str = "${hydra:runtime.cwd}/data/"
+    mode: str = 'paired_clevr'
+
+
+@dataclass
+class PairedDspritesDatamoduleConfig(DatamoduleConfig):
+    _target_: str = 'paired_codebook_ae.dataset.PairedDspritesDatamodule'
+    path_to_data_dir: str = "${hydra:runtime.cwd}/data/"
+    mode: str = 'paired_dsprites'
+
+
+@dataclass
 class DatasetConfig:
-    mode: str = "paired_dsprites"
-    path_to_dataset: str = "${hydra:runtime.cwd}/data/"
+    n_features: int = MISSING
+    datamodule: DatamoduleConfig = MISSING
+    train_size: int = MISSING
+    val_size: int = MISSING
+    image_size: Tuple[int, int, int] = MISSING
+    requires_fid: bool = False
+
+
+@dataclass
+class PairedClevrConfig(DatasetConfig):
+    datamodule: DatamoduleConfig = field(default_factory=PairedClevrDatamoduleConfig)
+    train_size: int = 10_000
+    val_size: int = 1_000
+    n_features: int = 6
+    image_size: Tuple[int, int, int] = (3, 128, 128)
+    requires_fid: bool = True
+
+
+@dataclass
+class PairedDspritesConfig(DatasetConfig):
+    datamodule: DatamoduleConfig = field(default_factory=PairedDspritesDatamoduleConfig)
     train_size: int = 100_000
     val_size: int = 30_000
     n_features: int = 5
+    image_size: Tuple[int, int, int] = (1, 64, 64)
+    requires_fid: bool = False
 
 
 @dataclass
@@ -28,7 +74,6 @@ class ModelConfig:
     decoder_config: DecoderConfig = field(default_factory=DecoderConfig)
     encoder_config: EncoderConfig = field(default_factory=EncoderConfig)
     latent_dim: int = 1024
-    image_size: Tuple[int, int, int] = (1, 64, 64)
     binder: str = "fourier"
     monitor: str = "Validation/Total"
 
@@ -69,6 +114,6 @@ class MetricsConfig:
 class VSADecoderConfig:
     model: ModelConfig = field(default_factory=ModelConfig)
     experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
-    dataset: DatasetConfig = field(default_factory=DatasetConfig)
+    dataset: DatasetConfig = field(default_factory=PairedClevrConfig)
     checkpoint: CheckpointsConfig = field(default_factory=CheckpointsConfig)
     metrics: MetricsConfig = field(default_factory=MetricsConfig)

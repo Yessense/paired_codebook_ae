@@ -1,5 +1,6 @@
 import pathlib
 from typing import Any, Optional, List
+from torchmetrics.image.fid import FrechetInceptionDistance
 
 import hydra
 import pytorch_lightning as pl
@@ -13,6 +14,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.optim import lr_scheduler
 
+from paired_codebook_ae.dataset._dataset_info import DatasetInfo
 from .attention import AttentionModule
 from .exchange import ExchangeModule
 from ..metrics.vsa import vsa_decoding_accuracy
@@ -28,18 +30,22 @@ from .encoder import Encoder
 class VSADecoder(pl.LightningModule):
     binder: Binder
     cfg: VSADecoderConfig
+    dataset_info: DatasetInfo
 
-    def __init__(self, cfg: VSADecoderConfig):
+    def __init__(self, cfg: VSADecoderConfig, dataset_info: DatasetInfo):
         super().__init__()
         self.cfg = cfg
+        self.dataset_info = dataset_info
 
-        features = Codebook.make_features_from_dataset(Dsprites)  # type: ignore
+        features = Codebook.make_features_from_dataset(dataset_info)
+        if cfg.dataset.requires_fid:
+            self.fid = FrechetInceptionDistance(feature=2048, normalize=True)
 
-        self.encoder = Encoder(image_size=cfg.model.image_size,
+        self.encoder = Encoder(image_size=cfg.dataset.image_size,
                                latent_dim=cfg.model.latent_dim,
                                hidden_channels=cfg.model.encoder_config.hidden_channels)
 
-        self.decoder = Decoder(image_size=cfg.model.image_size,
+        self.decoder = Decoder(image_size=cfg.dataset.image_size,
                                latent_dim=cfg.model.latent_dim,
                                in_channels=cfg.model.decoder_config.in_channels,
                                hidden_channels=cfg.model.decoder_config.hidden_channels)
@@ -117,11 +123,17 @@ class VSADecoder(pl.LightningModule):
         self.log(f"{mode}/iou donor", iou_donor)
 
         self.logger.experiment.log(
-            {f"{mode}/image max " + Dsprites.feature_names[i]: image_max_values[i] for i in
+            {f"{mode}/image max " + self.dataset_info.feature_names[i]: image_max_values[i] for i in
              range(self.cfg.dataset.n_features)}, commit=False)
         self.logger.experiment.log(
-            {f"{mode}/donor max " + Dsprites.feature_names[i]: donor_max_values[i] for i in
+            {f"{mode}/donor max " + self.dataset_info.feature_names[i]: donor_max_values[i] for i in
              range(self.cfg.dataset.n_features)})
+
+        if mode == 'Validation' and self.cfg.dataset.requires_fid:
+            self.fid.update(image, real=True)
+            self.fid.update(recon_image_like, real=False)
+            fid = self.fid.compute()
+            self.log(f"{mode}/FID", fid)
 
         if log_images(batch_idx):
             self.logger.experiment.log({
@@ -134,7 +146,7 @@ class VSADecoder(pl.LightningModule):
                                 caption='Recon like Donor'),
                 ]})
 
-        return total_loss
+        return {'loss': total_loss}
 
     def training_step(self, batch, batch_idx) -> STEP_OUTPUT:
         loss = self.step(batch, batch_idx, mode='Train')
@@ -178,7 +190,7 @@ class VSADecoder(pl.LightningModule):
                 self.logger.experiment.log({
                     "image": [wandb.Image(image[i], caption='Image')]
                 }, commit=False)
-                for feature_idx, feature_name in enumerate(Dsprites.feature_names):
+                for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
                     img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
                                             self.cfg.dataset.n_features,
                                             self.cfg.model.latent_dim).to(self.device)
@@ -191,7 +203,7 @@ class VSADecoder(pl.LightningModule):
                     img_batch = self.binder(img_batch)
                     img_batch = torch.sum(img_batch, dim=1)
                     img_batch = self.decoder(img_batch)
-                    commit = feature_idx == (len(Dsprites.feature_names) - 1)
+                    commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
                     self.logger.experiment.log({
                         feature_name: [wandb.Image(im) for im in img_batch]
                     }, commit=commit)

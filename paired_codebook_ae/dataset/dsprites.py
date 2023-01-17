@@ -11,37 +11,27 @@ import pytorch_lightning as pl
 import itertools
 import operator
 
-from ._dataset_info import DatasetWithInfo
+from ._dataset_info import DatasetWithInfo, DatasetInfo
 
 
 class Dsprites(DatasetWithInfo):
     """Store dsprites images"""
 
-    # List of feature names
-    feature_names: Tuple[str, ...] = (
-        'shape', 'scale', 'orientation', 'posX', 'posY')
-    # Count each feature counts
-    feature_counts: Tuple[int] = [3, 6, 40, 32, 32]
-
-    # Is feature contiguous
-    is_contiguous: Tuple[bool] = [False, True, True, True, True]
-
-    # Feature numbers
-    features_list: List[int] = list(range(len(feature_names)))
-
-    # Ranges for each feature possible values
-    features_range = [np.array(list(range(i))) for i in
-                      feature_counts]
-
-    # Getting multipler for each feature position
+    dataset_info = DatasetInfo(
+        feature_names=('shape', 'scale', 'orientation', 'posX', 'posY'),
+        feature_counts=(3, 6, 40, 32, 32),
+        is_contiguous=(False, True, True, True, True),
+        image_size=(1, 64, 64),
+        n_features=5,
+        features_list=[],
+        features_range=[]
+    )
     multiplier = list(itertools.accumulate(
-        feature_counts[-1:0:-1], operator.mul))[::-1] + [1]
-
-    n_features = 5
-
-    image_size: Tuple[int, int, int] = (1, 64, 64)
+        dataset_info.feature_counts[-1:0:-1], operator.mul))[::-1] + [1]
 
     def __init__(self, path='data/dsprites/dsprites.npz'):
+        super().__init__(dataset_info=self.dataset_info)
+
         # Load npz numpy archive
         dataset_zip = np.load(path, allow_pickle=True, encoding='latin1')
 
@@ -86,8 +76,7 @@ class Dsprites(DatasetWithInfo):
 
 
 class DspritesDatamodule(pl.LightningDataModule):
-    dataset: Dataset
-    image_size = (1, 64, 64)
+    dataset_type: DatasetWithInfo = Dsprites
 
     def __init__(self, path_to_data_dir: str = '../data/',
                  batch_size: int = 64,

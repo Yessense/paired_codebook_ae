@@ -1,4 +1,5 @@
 import itertools
+import operator
 import os
 from pathlib import Path
 import random
@@ -9,6 +10,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl
 
+from ._dataset_info import DatasetWithInfo
 from .dsprites import Dsprites
 
 
@@ -116,10 +118,18 @@ def make_pair_dsprites_indices(train_size: int,
         test_pairs), torch.stack(test_exchanges)
 
 
-class PairedDspritesDataset(Dataset):
+class PairedDspritesDataset(DatasetWithInfo):
+    # List of feature names
+
+    dataset_info = Dsprites.dataset_info
+    # Getting multipler for each feature position
+    multiplier = list(itertools.accumulate(
+        dataset_info.feature_counts[-1:0:-1], operator.mul))[::-1] + [1]
+
     def __init__(self, dsprites_path='../data/dsprites/dsprites.npz',
                  paired_dsprites_path='../data/paired_dsprites/train.npz'):
         # Load npz numpy archive
+        super().__init__(self.dataset_info)
         dsprites = np.load(dsprites_path, allow_pickle=True)
         paired_dsprites = torch.load(paired_dsprites_path)
 
@@ -128,10 +138,6 @@ class PairedDspritesDataset(Dataset):
 
         # Images: numpy array -> (737280, 64, 64)
         self.imgs = dsprites['imgs']
-
-        # List of feature names
-        self.feature_names: Tuple[str, ...] = (
-            'shape', 'scale', 'orientation', 'posX', 'posY')
 
         # Labels: numpy array -> (737280, 5)
         # Each column contains int value in range of `features_count`
@@ -155,9 +161,9 @@ class PairedDspritesDataset(Dataset):
 
 
 class PairedDspritesDatamodule(pl.LightningDataModule):
+    dataset_type: DatasetWithInfo = PairedDspritesDataset
     train_dataset: Dataset
     val_dataset: Dataset
-    test_dataset: Dataset
 
     def __init__(self, path_to_data_dir: str = '../data/',
                  batch_size: int = 64,
@@ -169,7 +175,7 @@ class PairedDspritesDatamodule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.image_size = (1, 64, 64)
 
-    def setup(self, stage):
+    def setup(self, stage=None):
         self.train_dataset = PairedDspritesDataset(
             dsprites_path=self.path_to_dsprites_dataset,
             paired_dsprites_path=str(
@@ -224,7 +230,7 @@ def plot_dataset(
         ax[1, i].imshow(pair_img.detach().cpu().numpy().squeeze(0), cmap='gray')
         ax[1, i].set_axis_off()
         print(
-            f'{i} pair has [{" ,".join([pd.feature_names[idx] for idx, label in enumerate(exchange_labels) if label])}] feature(s) exchanged')
+            f'{i} pair has [{" ,".join([pd.dataset_info.feature_names[idx] for idx, label in enumerate(exchange_labels) if label])}] feature(s) exchanged')
 
     plt.show()
 

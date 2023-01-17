@@ -1,6 +1,9 @@
 import os
 import pathlib
 import sys
+from typing import Union
+
+from hydra.utils import instantiate
 
 sys.path.append("..")
 
@@ -14,12 +17,16 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
 from .callbacks.logger import GeneralizationVisualizationCallback
-from .dataset.paired_dsprites import PairedDspritesDatamodule
+from .dataset import PairedDspritesDatamodule, PairedClevrDatamodule
 from .model.paired_ae import VSADecoder
-from .config import VSADecoderConfig
+from .config import VSADecoderConfig, PairedClevrConfig, PairedDspritesConfig, \
+    PairedClevrDatamoduleConfig
 
 cs = ConfigStore.instance()
 cs.store(name="config", node=VSADecoderConfig)
+cs.store(group="dataset.datamodule", name="paired_clevr", node=PairedClevrDatamoduleConfig)
+cs.store(group="dataset", name="paired_clevr", node=PairedClevrConfig)
+cs.store(group="dataset", name="paired_dsprites", node=PairedDspritesConfig)
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
@@ -27,16 +34,12 @@ def main(cfg: VSADecoderConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     seed_everything(cfg.experiment.seed)
 
-    datamodule = PairedDspritesDatamodule(
-        path_to_data_dir=cfg.dataset.path_to_dataset,
-        batch_size=cfg.experiment.batch_size,
-        mode=cfg.dataset.mode)
-    # else:
-    #     raise NotImplemented(f"Wrong dataset mode {cfg.dataset.path_to_dataset!r}")
+    datamodule: Union[PairedClevrDatamodule,
+    PairedDspritesDatamodule] = instantiate(cfg.dataset.datamodule)
 
     cfg.experiment.steps_per_epoch = cfg.dataset.train_size // cfg.experiment.batch_size
 
-    model = VSADecoder(cfg=cfg)
+    model = VSADecoder(cfg=cfg, dataset_info=datamodule.dataset_type.dataset_info)
 
     checkpoints_path = os.path.join(cfg.experiment.logging_dir, "checkpoints")
 
@@ -50,8 +53,8 @@ def main(cfg: VSADecoderConfig) -> None:
 
     # Learning rate monitor
     lr_monitor = LearningRateMonitor(logging_interval='step')
-    gen_viz_callback = GeneralizationVisualizationCallback(
-        path_to_data_dir=cfg.dataset.path_to_dataset + '/dsprites/dsprites.npz')
+    # gen_viz_callback = GeneralizationVisualizationCallback(
+    #     path_to_data_dir=cfg.dataset.path_to_dataset + '/dsprites/dsprites.npz')
 
     callbacks = [
         # gen_viz_callback,
@@ -63,8 +66,8 @@ def main(cfg: VSADecoderConfig) -> None:
     ]
 
     wandb_logger = WandbLogger(
-        project=cfg.dataset.mode + '_vsa',
-        name=f'{cfg.dataset.mode} -l {cfg.model.latent_dim} '
+        project=cfg.dataset.datamodule.mode + '_vsa',
+        name=f'{cfg.dataset.datamodule.mode} -l {cfg.model.latent_dim} '
              f'-s {cfg.experiment.seed} '
              f'-bs {cfg.experiment.batch_size} '
              f'vsa',

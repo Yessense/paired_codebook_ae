@@ -4,6 +4,7 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset
 
+from ..dataset._dataset_info import DatasetInfo, DatasetWithInfo
 from . import vsa
 
 
@@ -21,11 +22,11 @@ class Codebook(nn.Module):
     codebook: List[torch.tensor]
 
     @staticmethod
-    def make_features_from_dataset(dataset: Dataset) -> List[Feature]:
+    def make_features_from_dataset(dataset_info: DatasetInfo) -> List[Feature]:
         features: List[Feature] = []
-        for feature_name, n_values, contiguous in zip(dataset.feature_names,
-                                                      dataset.feature_counts,
-                                                      dataset.is_contiguous):
+        for feature_name, n_values, contiguous in zip(dataset_info.feature_names,
+                                                      dataset_info.feature_counts,
+                                                      dataset_info.is_contiguous):
             features.append(Feature(name=feature_name,
                                     n_values=n_values,
                                     contiguous=contiguous))
