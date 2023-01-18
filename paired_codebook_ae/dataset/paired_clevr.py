@@ -33,7 +33,7 @@ class PairedClevr(DatasetWithInfo):
         self.img_dir = dataset_dir / 'images'
         self.img_template = "{name}_{idx:06d}.png"
         self.json_template = "scene_{idx:06d}.json"
-        self._size = len(os.listdir(self.scenes_dir)) // 2
+        self._size = len(os.listdir(self.scenes_dir))
         self.indices = indices
 
     def __len__(self):
