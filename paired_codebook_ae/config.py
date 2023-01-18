@@ -19,7 +19,7 @@ class PairedClevrDatamoduleConfig(DatamoduleConfig):
     _target_: str = 'paired_codebook_ae.dataset.PairedClevrDatamodule'
     path_to_data_dir: str = "${hydra:runtime.cwd}/data/"
     mode: str = 'paired_clevr'
-    num_workers: int = 4
+    num_workers: int = 16
 
 
 @dataclass
