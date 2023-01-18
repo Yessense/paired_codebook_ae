@@ -82,8 +82,10 @@ class PairedClevrDatamodule(pl.LightningDataModule):
 
     def __init__(self, path_to_data_dir: str = '../data/',
                  batch_size: int = 64,
-                 mode: str = "paired_clevr"):
+                 mode: str = "paired_clevr",
+                 num_workers: int = 4):
         super().__init__()
+        self.num_workers = num_workers
         path_to_data_dir = Path(path_to_data_dir)
         self.path_to_paired_clevr_dir = path_to_data_dir / mode
         self.batch_size = batch_size
@@ -102,10 +104,12 @@ class PairedClevrDatamodule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
+                          num_workers=self.num_workers,
                           drop_last=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
+                          num_workers=self.num_workers,
                           drop_last=True)
 
     def test_dataloader(self):
