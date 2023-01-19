@@ -200,7 +200,7 @@ class VSADecoder(pl.LightningModule):
                 image_features, image_max_values = self.attention(image_latent)
                 donor_features, donor_max_values = self.attention(donor_latent)
 
-                for feature_number in self.cfg.dataset.n_features:
+                for feature_number in range(self.cfg.dataset.n_features):
                     exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
                         self.device)
                     exchange_labels[0, feature_number] = True
