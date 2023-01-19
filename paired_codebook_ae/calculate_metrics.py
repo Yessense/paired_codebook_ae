@@ -45,8 +45,8 @@ def main(cfg: VSADecoderConfig) -> None:
     model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
 
     wandb_logger = WandbLogger(
-        project=f"metrics_{cfg.dataset.mode}_vsa",
-        name=f'{cfg.dataset.mode} -l {cfg.model.latent_dim} '
+        project=f"metrics_{cfg.dataset.datamodule.mode}_vsa",
+        name=f'{cfg.dataset.datamodule.mode} -l {cfg.model.latent_dim} '
              f'-s {cfg.experiment.seed} '
              f'-bs {cfg.experiment.batch_size} '
              f'vsa',
