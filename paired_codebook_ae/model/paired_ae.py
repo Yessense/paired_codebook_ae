@@ -202,7 +202,7 @@ class VSADecoder(pl.LightningModule):
 
                 for feature_number in range(self.cfg.dataset.n_features):
                     exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
-                        self.device)
+                        self.device).unsqueeze(-1)
                     exchange_labels[0, feature_number] = True
 
                     image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
