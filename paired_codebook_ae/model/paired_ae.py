@@ -194,9 +194,9 @@ class VSADecoder(pl.LightningModule):
             }, commit=False)
             c, h, w = self.cfg.dataset.image_size
             recons = torch.zeros(self.cfg.dataset.n_features, c, h, w).to(self.device)
-            latents = self.encoder(image[i * 2:i * 2 + 2])
-            image_latent = latents[0].unsqueeze(0)
-            donor_latent = latents[1].unsqueeze(0)
+            latents = self.encoder(image)
+            image_latent = latents[i].unsqueeze(0)
+            donor_latent = latents[j].unsqueeze(0)
 
             image_features, image_max_values = self.attention(image_latent)
             donor_features, donor_max_values = self.attention(donor_latent)
