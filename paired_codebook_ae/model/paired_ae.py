@@ -1,4 +1,5 @@
 import pathlib
+import random
 from typing import Any, Optional, List
 from torchmetrics.image.fid import FrechetInceptionDistance
 
@@ -185,39 +186,38 @@ class VSADecoder(pl.LightningModule):
             image_latent = self.encoder(image)
             image_features, _ = self.attention(image_latent)
 
-            n_samples = 20
-            for i in range(n_samples):
-                self.logger.experiment.log({
-                    "image": [wandb.Image(image[i * 2], caption='Image'),
-                              wandb.Image(image[i * 2 + 1], caption='Donor')]
-                }, commit=False)
-                c, h, w = self.cfg.dataset.image_size
-                recons = torch.zeros(self.cfg.dataset.n_features, c, h, w).to(self.device)
-                latents = self.encoder(image[i * 2:i * 2 + 2])
-                image_latent = latents[0].unsqueeze(0)
-                donor_latent = latents[1].unsqueeze(0)
+            i = random.randint(0, self.cfg.experiment.batch_size - 1)
+            self.logger.experiment.log({
+                "image": [wandb.Image(image[i], caption='Image'),
+                          wandb.Image(image[i+ 1], caption='Donor')]
+            }, commit=False)
+            c, h, w = self.cfg.dataset.image_size
+            recons = torch.zeros(self.cfg.dataset.n_features, c, h, w).to(self.device)
+            latents = self.encoder(image[i * 2:i * 2 + 2])
+            image_latent = latents[0].unsqueeze(0)
+            donor_latent = latents[1].unsqueeze(0)
 
-                image_features, image_max_values = self.attention(image_latent)
-                donor_features, donor_max_values = self.attention(donor_latent)
+            image_features, image_max_values = self.attention(image_latent)
+            donor_features, donor_max_values = self.attention(donor_latent)
 
-                for feature_number in range(self.cfg.dataset.n_features):
-                    exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
-                        self.device).unsqueeze(-1)
-                    print(exchange_labels.shape)
-                    exchange_labels[:, feature_number,:] = True
+            for feature_number in range(self.cfg.dataset.n_features):
+                exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
+                    self.device).unsqueeze(-1)
+                print(exchange_labels.shape)
+                exchange_labels[:, feature_number,:] = True
 
-                    image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
-                        image_features, donor_features, exchange_labels)
+                image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
+                    image_features, donor_features, exchange_labels)
 
-                    donor_like_binded = self.binder(donor_with_same_image_elements)
+                donor_like_binded = self.binder(donor_with_same_image_elements)
 
-                    recon_donor_like = self.decoder(torch.sum(donor_like_binded, dim=1))
-                    recons[feature_number] = recon_donor_like[0]
-                self.logger.experiment.log({
-                    self.dataset_info.feature_names[feature_number]: wandb.Image(
-                        recons[feature_number]) for feature_number in
-                    range(self.cfg.dataset.n_features)}
-                , commit = True)
+                recon_donor_like = self.decoder(torch.sum(donor_like_binded, dim=1))
+                recons[feature_number] = recon_donor_like[0]
+            self.logger.experiment.log({
+                self.dataset_info.feature_names[feature_number]: wandb.Image(
+                    recons[feature_number]) for feature_number in
+                range(self.cfg.dataset.n_features)}
+            , commit = True)
 
                 # for i in range(n_samples):
                 #     self.logger.experiment.log({
