@@ -33,8 +33,9 @@ class VSADecoder(pl.LightningModule):
     cfg: VSADecoderConfig
     dataset_info: DatasetInfo
 
-    def __init__(self, cfg: VSADecoderConfig, dataset_info: DatasetInfo):
+    def __init__(self, cfg: VSADecoderConfig):
         super().__init__()
+        dataset_info: DatasetInfo = Dsprites.dataset_info
         self.cfg = cfg
         self.dataset_info = dataset_info
 
