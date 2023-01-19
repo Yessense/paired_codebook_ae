@@ -1,16 +1,19 @@
 import os
 import pathlib
+from typing import Union
 
 import hydra
 import torch
 import wandb
 from hydra.core.config_store import ConfigStore
+from hydra.utils import instantiate
 from omegaconf import OmegaConf
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
+from paired_codebook_ae.dataset import PairedClevrDatamodule
 from .dataset.paired_dsprites import PairedDspritesDatamodule
 from .utils import find_best_model
 from .dataset.generalization_dsprites import GeneralizationDspritesDataModule
@@ -30,12 +33,8 @@ def main(cfg: VSADecoderConfig) -> None:
     seed_everything(cfg.experiment.seed)
     # cfg.metrics.metrics_dir = "/home/yessense/data/paired_codebook_ae/outputs/2023-01-15/21-52-26"
 
-    if cfg.dataset.mode == 'paired_dsprites':
-        datamodule = PairedDspritesDatamodule(
-            path_to_data_dir=cfg.dataset.path_to_dataset,
-            batch_size=cfg.experiment.batch_size)
-    else:
-        raise NotImplemented(f"Wrong dataset mode {cfg.dataset.path_to_dataset!r}")
+    datamodule: Union[PairedClevrDatamodule,
+    PairedDspritesDatamodule] = instantiate(cfg.dataset.datamodule)
 
     if not cfg.metrics.ckpt_path:
         cfg.metrics.ckpt_path = find_best_model(
