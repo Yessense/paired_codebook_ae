@@ -185,56 +185,84 @@ class VSADecoder(pl.LightningModule):
             image_latent = self.encoder(image)
             image_features, _ = self.attention(image_latent)
 
-            n_samples = 4
+            n_samples = 20
             for i in range(n_samples):
                 self.logger.experiment.log({
-                    "image": [wandb.Image(image[i], caption='Image')]
+                    "image": [wandb.Image(image[i * 2], caption='Image'),
+                              [wandb.Image(image[i * 2 + 1], caption='Donor')]]
                 }, commit=False)
-                for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
-                    img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
-                                            self.cfg.dataset.n_features,
-                                            self.cfg.model.latent_dim).to(self.device)
+                c, h, w = self.cfg.dataset.image_size
+                recons = torch.zeros(self.cfg.dataset.n_features, c, h, w).to(self.device)
+                latents = self.encoder(image[i * 2:i * 2 + 2])
+                image_latent = latents[0].unsqueeze(0)
+                donor_latent = latents[1].unsqueeze(0)
 
-                    for feature_number, feature_value in enumerate(
-                            self.codebook.vsa_features[feature_idx]):
-                        img_batch[feature_number] = image_features[i]
-                        img_batch[feature_number, feature_idx] = feature_value
+                image_features, image_max_values = self.attention(image_latent)
+                donor_features, donor_max_values = self.attention(donor_latent)
 
-                    img_batch = self.binder(img_batch)
-                    img_batch = torch.sum(img_batch, dim=1)
-                    img_batch = self.decoder(img_batch)
-                    commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
-                    self.logger.experiment.log({
-                        feature_name: [wandb.Image(im) for im in img_batch]
-                    }, commit=commit)
-        else:
-            return
+                for feature_number in self.cfg.dataset.n_features:
+                    exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
+                        self.device)
+                    exchange_labels[0, feature_number] = True
 
+                    image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
+                        image_features, donor_features, exchange_labels)
 
-cs = ConfigStore.instance()
-cs.store(name="config", node=VSADecoderConfig)
+                    donor_like_binded = self.binder(donor_with_same_image_elements)
 
-path_to_dataset = pathlib.Path().absolute()
+                    recon_donor_like = self.decoder(torch.sum(donor_like_binded, dim=1))
+                    recons[feature_number] = recon_donor_like[0]
+                self.logger.experiment.log({
+                    self.dataset_info.feature_names[feature_number]: wandb.Image(
+                        recons[feature_number]) for feature_number in
+                    range(self.cfg.dataset.n_features)}
+                , commit = True)
 
+                # for i in range(n_samples):
+                #     self.logger.experiment.log({
+                #         "image": [wandb.Image(image[i], caption='Image')]
+                #     }, commit=False)
+                #     for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
+                #         img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
+                #                                 self.cfg.dataset.n_features,
+                #                                 self.cfg.model.latent_dim).to(self.device)
+                #
+                #         for feature_number, feature_value in enumerate(
+                #                 self.codebook.vsa_features[feature_idx]):
+                #             img_batch[feature_number] = image_features[i]
+                #             img_batch[feature_number, feature_idx] = feature_value
+                #
+                #         img_batch = self.binder(img_batch)
+                #         img_batch = torch.sum(img_batch, dim=1)
+                #         img_batch = self.decoder(img_batch)
+                #         commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
+                #         self.logger.experiment.log({
+                #             feature_name: [wandb.Image(im) for im in img_batch]
+                #         }, commit=commit)
+                return
 
-@hydra.main(version_base=None, config_name="config")
-def main(cfg: VSADecoderConfig) -> None:
-    print(OmegaConf.to_yaml(cfg))
-    seed_everything(cfg.experiment.seed)
-    model = VSADecoder(cfg)
+    cs = ConfigStore.instance()
+    cs.store(name="config", node=VSADecoderConfig)
 
-    batch_size = 10
-    latent_dim = 1024
-    img = torch.randn((batch_size, 1, 64, 64))
+    path_to_dataset = pathlib.Path().absolute()
 
-    x = torch.randn((batch_size, 1024))
-    result = model.attention(x)
-    # labels = torch.randint(0, 3, (batch_size, 5))
+    @hydra.main(version_base=None, config_name="config")
+    def main(cfg: VSADecoderConfig) -> None:
+        print(OmegaConf.to_yaml(cfg))
+        seed_everything(cfg.experiment.seed)
+        model = VSADecoder(cfg)
 
-    # model.step((img, labels), 1)
+        batch_size = 10
+        latent_dim = 1024
+        img = torch.randn((batch_size, 1, 64, 64))
 
-    pass
+        x = torch.randn((batch_size, 1024))
+        result = model.attention(x)
+        # labels = torch.randint(0, 3, (batch_size, 5))
 
+        # model.step((img, labels), 1)
 
-if __name__ == '__main__':
-    main()
+        pass
+
+    if __name__ == '__main__':
+        main()
