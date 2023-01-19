@@ -189,7 +189,7 @@ class VSADecoder(pl.LightningModule):
             for i in range(n_samples):
                 self.logger.experiment.log({
                     "image": [wandb.Image(image[i * 2], caption='Image'),
-                              [wandb.Image(image[i * 2 + 1], caption='Donor')]]
+                              wandb.Image(image[i * 2 + 1], caption='Donor')]
                 }, commit=False)
                 c, h, w = self.cfg.dataset.image_size
                 recons = torch.zeros(self.cfg.dataset.n_features, c, h, w).to(self.device)
