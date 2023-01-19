@@ -205,7 +205,7 @@ class VSADecoder(pl.LightningModule):
                 exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
                     self.device).unsqueeze(-1)
                 print(exchange_labels.shape)
-                exchange_labels[:, feature_number,:] = True
+                exchange_labels[:, feature_number, :] = True
 
                 image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
                     image_features, donor_features, exchange_labels)
@@ -218,53 +218,56 @@ class VSADecoder(pl.LightningModule):
                 self.dataset_info.feature_names[feature_number]: wandb.Image(
                     recons[feature_number]) for feature_number in
                 range(self.cfg.dataset.n_features)}
-            , commit = True)
+                , commit=True)
 
-                # for i in range(n_samples):
-                #     self.logger.experiment.log({
-                #         "image": [wandb.Image(image[i], caption='Image')]
-                #     }, commit=False)
-                #     for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
-                #         img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
-                #                                 self.cfg.dataset.n_features,
-                #                                 self.cfg.model.latent_dim).to(self.device)
-                #
-                #         for feature_number, feature_value in enumerate(
-                #                 self.codebook.vsa_features[feature_idx]):
-                #             img_batch[feature_number] = image_features[i]
-                #             img_batch[feature_number, feature_idx] = feature_value
-                #
-                #         img_batch = self.binder(img_batch)
-                #         img_batch = torch.sum(img_batch, dim=1)
-                #         img_batch = self.decoder(img_batch)
-                #         commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
-                #         self.logger.experiment.log({
-                #             feature_name: [wandb.Image(im) for im in img_batch]
-                #         }, commit=commit)
-                return
+            # for i in range(n_samples):
+            #     self.logger.experiment.log({
+            #         "image": [wandb.Image(image[i], caption='Image')]
+            #     }, commit=False)
+            #     for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
+            #         img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
+            #                                 self.cfg.dataset.n_features,
+            #                                 self.cfg.model.latent_dim).to(self.device)
+            #
+            #         for feature_number, feature_value in enumerate(
+            #                 self.codebook.vsa_features[feature_idx]):
+            #             img_batch[feature_number] = image_features[i]
+            #             img_batch[feature_number, feature_idx] = feature_value
+            #
+            #         img_batch = self.binder(img_batch)
+            #         img_batch = torch.sum(img_batch, dim=1)
+            #         img_batch = self.decoder(img_batch)
+            #         commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
+            #         self.logger.experiment.log({
+            #             feature_name: [wandb.Image(im) for im in img_batch]
+            #         }, commit=commit)
+            return
 
-    cs = ConfigStore.instance()
-    cs.store(name="config", node=VSADecoderConfig)
 
-    path_to_dataset = pathlib.Path().absolute()
+cs = ConfigStore.instance()
+cs.store(name="config", node=VSADecoderConfig)
 
-    @hydra.main(version_base=None, config_name="config")
-    def main(cfg: VSADecoderConfig) -> None:
-        print(OmegaConf.to_yaml(cfg))
-        seed_everything(cfg.experiment.seed)
-        model = VSADecoder(cfg)
+path_to_dataset = pathlib.Path().absolute()
 
-        batch_size = 10
-        latent_dim = 1024
-        img = torch.randn((batch_size, 1, 64, 64))
 
-        x = torch.randn((batch_size, 1024))
-        result = model.attention(x)
-        # labels = torch.randint(0, 3, (batch_size, 5))
+@hydra.main(version_base=None, config_name="config")
+def main(cfg: VSADecoderConfig) -> None:
+    print(OmegaConf.to_yaml(cfg))
+    seed_everything(cfg.experiment.seed)
+    model = VSADecoder(cfg)
 
-        # model.step((img, labels), 1)
+    batch_size = 10
+    latent_dim = 1024
+    img = torch.randn((batch_size, 1, 64, 64))
 
-        pass
+    x = torch.randn((batch_size, 1024))
+    result = model.attention(x)
+    # labels = torch.randint(0, 3, (batch_size, 5))
 
-    if __name__ == '__main__':
-        main()
+    # model.step((img, labels), 1)
+
+    pass
+
+
+if __name__ == '__main__':
+    main()
