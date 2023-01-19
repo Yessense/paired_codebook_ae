@@ -18,6 +18,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 from .callbacks.logger import GeneralizationVisualizationCallback
 from .dataset import PairedDspritesDatamodule, PairedClevrDatamodule
+from .dataset.dsprites import Dsprites
 from .model.paired_ae import VSADecoder
 from .config import VSADecoderConfig, PairedClevrConfig, PairedDspritesConfig, \
     PairedClevrDatamoduleConfig
@@ -39,7 +40,7 @@ def main(cfg: VSADecoderConfig) -> None:
 
     cfg.experiment.steps_per_epoch = cfg.dataset.train_size // cfg.experiment.batch_size
 
-    model = VSADecoder(cfg=cfg, dataset_info=PairedDspritesDatamodule.dataset_type.dataset_info)
+    model = VSADecoder(cfg=cfg, dataset_info=Dsprites.dataset_info)
 
     checkpoints_path = os.path.join(cfg.experiment.logging_dir, "checkpoints")
 
