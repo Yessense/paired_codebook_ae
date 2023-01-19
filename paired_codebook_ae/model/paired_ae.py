@@ -173,7 +173,7 @@ class VSADecoder(pl.LightningModule):
         self.labels = []
 
     def test_step(self, batch, batch_idx):
-        if batch_idx == 0:
+        if batch_idx < 20:
             image: torch.tensor
             image_labels: torch.tensor
             donor: torch.tensor
