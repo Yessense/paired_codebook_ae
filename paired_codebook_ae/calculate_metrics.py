@@ -12,6 +12,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.loggers import WandbLogger
 
+from .dataset.dsprites import Dsprites
 from .dataset import PairedClevrDatamodule
 from .dataset.paired_dsprites import PairedDspritesDatamodule
 from .utils import find_best_model
@@ -39,7 +40,7 @@ def main(cfg: VSADecoderConfig) -> None:
 
     # print(cfg.metrics.ckpt_path)
 
-    model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
+    model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path, Dsprites.dataset_info)
 
     wandb_logger = WandbLogger(
         project=f"metrics_{cfg.dataset.datamodule.mode}_vsa",
