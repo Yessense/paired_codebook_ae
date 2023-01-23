@@ -176,8 +176,8 @@ class VSADecoder(pl.LightningModule):
         self.labels = []
 
     def test_step(self, batch, batch_idx):
-        # if batch_idx == 0:
-        #     reconstruction_from_one_feature(self)
+        if batch_idx == 0:
+            reconstruction_from_one_feature(self)
         if batch_idx < 20:
             exchange_between_two_dataset_objects(self, batch, batch_idx)
 
