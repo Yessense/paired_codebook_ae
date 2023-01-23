@@ -47,19 +47,12 @@ def exchange_between_two_dataset_objects(paired_ae, batch, batch_idx):
 
     recon_image_like = paired_ae.decoder(torch.sum(image_like_binded, dim=1))
     recon_donor_like = paired_ae.decoder(torch.sum(donor_like_binded, dim=1))
-    paired_ae.logger.experiment.log({"Image": image[0]})
-    paired_ae.logger.experiment.log({"Donor": image[0]})
-    paired_ae.logger.experiment.log({"Recon_like_image": image[0]})
 
-    paired_ae.logger.experiment.log({
-        f"Image": [
-            wandb.Image(image[0], caption='Image'),
-            wandb.Image(donor[0], caption='Donor'),
-            wandb.Image(recon_image_like[0],
-                        caption='Recon like Image'),
-            wandb.Image(recon_donor_like[0],
-                        caption='Recon like Donor'),
-        ]})
+    paired_ae.logger.experiment.log({"experiment/Image": wandb.Image(image[0])}),
+    paired_ae.logger.experiment.log({"experiment/Donor": wandb.Image(donor[0])}),
+    paired_ae.logger.experiment.log({"experiment/Recon_like_image": wandb.Image(recon_image_like[0])})
+    paired_ae.logger.experiment.log({"experiment/Recon_like_image": wandb.Image(recon_donor_like[0]}))
+
 
 
 def exchange_between_two_random_objects(paired_ae, batch):
