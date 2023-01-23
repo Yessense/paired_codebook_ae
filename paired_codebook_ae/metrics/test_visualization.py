@@ -22,6 +22,43 @@ def reconstruction_from_one_feature(paired_ae):
     })
 
 
+
+def exchange_between_two_dataset_objects(paired_ae, batch):
+    image: torch.tensor
+    image_labels: torch.tensor
+    donor: torch.tensor
+    donor_labels: torch.tensor
+    exchange_labels: torch.tensor
+
+    (image, donor), (image_labels, donor_labels), exchange_labels = batch
+
+    image_latent = paired_ae.encoder(image)
+    donor_latent = paired_ae.encoder(donor)
+
+    image_features, image_max_values = paired_ae.attention(image_latent)
+    donor_features, donor_max_values = paired_ae.attention(donor_latent)
+
+    image_with_same_donor_elements, donor_with_same_image_elements = paired_ae.exchange_module(
+        image_features, donor_features, exchange_labels)
+
+    image_like_binded = paired_ae.binder(image_with_same_donor_elements)
+    donor_like_binded = paired_ae.binder(donor_with_same_image_elements)
+
+    recon_image_like = paired_ae.decoder(torch.sum(image_like_binded, dim=1))
+    recon_donor_like = paired_ae.decoder(torch.sum(donor_like_binded, dim=1))
+
+
+    paired_ae.logger.experiment.log({
+        f"Examples/Images": [
+            wandb.Image(image[0], caption='Image'),
+            wandb.Image(donor[0], caption='Donor'),
+            wandb.Image(recon_image_like[0],
+                        caption='Recon like Image'),
+            wandb.Image(recon_donor_like[0],
+                        caption='Recon like Donor'),
+        ]})
+
+
 def exchange_between_two_random_objects(paired_ae, batch):
     image: torch.tensor
     image_labels: torch.tensor

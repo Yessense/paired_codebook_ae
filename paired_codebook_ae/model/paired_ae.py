@@ -17,7 +17,7 @@ from torch.optim import lr_scheduler
 
 from ..dataset._dataset_info import DatasetInfo
 from ..metrics.test_visualization import reconstruction_from_one_feature, \
-    exchange_between_two_random_objects
+    exchange_between_two_random_objects, exchange_between_two_dataset_objects
 from .attention import AttentionModule
 from .exchange import ExchangeModule
 from ..metrics.vsa import vsa_decoding_accuracy
@@ -176,10 +176,10 @@ class VSADecoder(pl.LightningModule):
         self.labels = []
 
     def test_step(self, batch, batch_idx):
-        if batch_idx == 0:
-            reconstruction_from_one_feature(self)
+        # if batch_idx == 0:
+        #     reconstruction_from_one_feature(self)
         if batch_idx < 20:
-            exchange_between_two_random_objects(self, batch)
+            exchange_between_two_dataset_objects(self, batch)
 
             # for i in range(n_samples):
             #     self.logger.experiment.log({
