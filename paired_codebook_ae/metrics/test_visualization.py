@@ -4,6 +4,8 @@ import torch
 import wandb
 
 from ..codebook import vsa
+
+
 # from ..model.paired_ae import VSADecoder
 
 
@@ -22,8 +24,7 @@ def reconstruction_from_one_feature(paired_ae):
     })
 
 
-
-def exchange_between_two_dataset_objects(paired_ae, batch):
+def exchange_between_two_dataset_objects(paired_ae, batch, batch_idx):
     image: torch.tensor
     image_labels: torch.tensor
     donor: torch.tensor
@@ -47,9 +48,8 @@ def exchange_between_two_dataset_objects(paired_ae, batch):
     recon_image_like = paired_ae.decoder(torch.sum(image_like_binded, dim=1))
     recon_donor_like = paired_ae.decoder(torch.sum(donor_like_binded, dim=1))
 
-
     paired_ae.logger.experiment.log({
-        f"Examples/Images": [
+        f"Images_{batch_idx}": [
             wandb.Image(image[0], caption='Image'),
             wandb.Image(donor[0], caption='Donor'),
             wandb.Image(recon_image_like[0],
