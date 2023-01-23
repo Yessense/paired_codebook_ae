@@ -10,14 +10,11 @@ from hydra.utils import instantiate
 from omegaconf import OmegaConf
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
-from paired_codebook_ae.dataset import PairedClevrDatamodule
+from .dataset import PairedClevrDatamodule
 from .dataset.paired_dsprites import PairedDspritesDatamodule
 from .utils import find_best_model
-from .dataset.generalization_dsprites import GeneralizationDspritesDataModule
-from .dataset.dsprites import DspritesDatamodule
 from .model.paired_ae import VSADecoder
 from .config import VSADecoderConfig
 

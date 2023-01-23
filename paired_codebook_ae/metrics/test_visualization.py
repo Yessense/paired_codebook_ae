@@ -4,10 +4,10 @@ import torch
 import wandb
 
 from ..codebook import vsa
-from ..model.paired_ae import VSADecoder
+# from ..model.paired_ae import VSADecoder
 
 
-def reconstruction_from_one_feature(paired_ae: VSADecoder):
+def reconstruction_from_one_feature(paired_ae):
     log_images = []
     for feature_number in range(paired_ae.cfg.dataset.n_features):
         for i, feature_value in enumerate(paired_ae.codebook.vsa_features[feature_number]):
@@ -22,7 +22,7 @@ def reconstruction_from_one_feature(paired_ae: VSADecoder):
     })
 
 
-def exchange_between_two_random_objects(paired_ae: VSADecoder, batch):
+def exchange_between_two_random_objects(paired_ae, batch):
     image: torch.tensor
     image_labels: torch.tensor
     donor: torch.tensor
