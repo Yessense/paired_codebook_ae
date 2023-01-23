@@ -15,7 +15,9 @@ import torch.nn.functional as F
 from torch import nn
 from torch.optim import lr_scheduler
 
-from paired_codebook_ae.dataset._dataset_info import DatasetInfo
+from ..dataset._dataset_info import DatasetInfo
+from ..metrics.test_visualization import reconstruction_from_one_feature, \
+    exchange_between_two_random_objects
 from .attention import AttentionModule
 from .exchange import ExchangeModule
 from ..metrics.vsa import vsa_decoding_accuracy
@@ -174,51 +176,10 @@ class VSADecoder(pl.LightningModule):
         self.labels = []
 
     def test_step(self, batch, batch_idx):
+        if batch_idx == 0:
+            reconstruction_from_one_feature(self)
         if batch_idx < 20:
-            image: torch.tensor
-            image_labels: torch.tensor
-            donor: torch.tensor
-            donor_labels: torch.tensor
-            exchange_labels: torch.tensor
-
-            (image, donor), (image_labels, donor_labels), exchange_labels = batch
-
-            image_latent = self.encoder(image)
-            image_features, _ = self.attention(image_latent)
-
-            i = random.randint(0, self.cfg.experiment.batch_size - 1)
-            j = random.randint(0, self.cfg.experiment.batch_size - 1)
-            self.logger.experiment.log({
-                "image": [wandb.Image(image[i], caption='Image'),
-                          wandb.Image(image[j], caption='Donor')]
-            }, commit=False)
-            c, h, w = self.cfg.dataset.image_size
-            recons = torch.zeros(self.cfg.dataset.n_features, c, h, w).to(self.device)
-            latents = self.encoder(image)
-            image_latent = latents[i].unsqueeze(0)
-            donor_latent = latents[j].unsqueeze(0)
-
-            image_features, image_max_values = self.attention(image_latent)
-            donor_features, donor_max_values = self.attention(donor_latent)
-
-            for feature_number in range(self.cfg.dataset.n_features):
-                exchange_labels = torch.zeros(1, self.cfg.dataset.n_features).bool().to(
-                    self.device).unsqueeze(-1)
-                print(exchange_labels.shape)
-                exchange_labels[:, feature_number, :] = True
-
-                image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
-                    image_features, donor_features, exchange_labels)
-
-                donor_like_binded = self.binder(donor_with_same_image_elements)
-
-                recon_donor_like = self.decoder(torch.sum(donor_like_binded, dim=1))
-                recons[feature_number] = recon_donor_like[0]
-            self.logger.experiment.log({
-                self.dataset_info.feature_names[feature_number]: wandb.Image(
-                    recons[feature_number]) for feature_number in
-                range(self.cfg.dataset.n_features)}
-                , commit=True)
+            exchange_between_two_random_objects(self, batch)
 
             # for i in range(n_samples):
             #     self.logger.experiment.log({
