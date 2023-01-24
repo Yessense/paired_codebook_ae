@@ -8,6 +8,24 @@ from ..codebook import vsa
 
 # from ..model.paired_ae import VSADecoder
 
+def reconstruction_from_codebook(paired_ae, n_samples):
+    log_images = []
+
+    for _ in range(n_samples):
+        image = []
+        for placeholder, feature_number in zip(paired_ae.codebook.placeholders,
+                                               range(paired_ae.cfg.dataset.n_features)):
+            feature_value = random.choice(paired_ae.codebook.vsa_features[feature_number])
+            image.append(vsa.bind(feature_value, placeholder))
+        image = sum(image)
+        image.unsqueeze(0)
+        recon = paired_ae.de
+
+
+
+
+
+
 
 def reconstruction_from_one_feature(paired_ae):
     log_images = []
@@ -50,9 +68,10 @@ def exchange_between_two_dataset_objects(paired_ae, batch, batch_idx):
 
     paired_ae.logger.experiment.log({"experiment/Image": wandb.Image(image[0])}, commit=False)
     paired_ae.logger.experiment.log({"experiment/Donor": wandb.Image(donor[0])}, commit=False)
-    paired_ae.logger.experiment.log({"experiment/Recon_like_image": wandb.Image(recon_image_like[0])}, commit=False)
-    paired_ae.logger.experiment.log({"experiment/Recon_like_donor": wandb.Image(recon_donor_like[0])}, commit=True)
-
+    paired_ae.logger.experiment.log(
+        {"experiment/Recon_like_image": wandb.Image(recon_image_like[0])}, commit=False)
+    paired_ae.logger.experiment.log(
+        {"experiment/Recon_like_donor": wandb.Image(recon_donor_like[0])}, commit=True)
 
 
 def exchange_between_two_random_objects(paired_ae, batch):
