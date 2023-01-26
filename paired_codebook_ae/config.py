@@ -88,7 +88,7 @@ class ExperimentConfig:
     steps_per_epoch: int = 0
     accelerator: str = 'gpu'
     devices: List[int] = field(default_factory=lambda: [0])
-    max_epochs: int = 400
+    max_epochs: int = 200
     profiler: Optional[str] = None
     gradient_clip: float = 0.0
     logging_dir: str = "${hydra:run.dir}/"
@@ -116,6 +116,6 @@ class MetricsConfig:
 class VSADecoderConfig:
     model: ModelConfig = field(default_factory=ModelConfig)
     experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
-    dataset: DatasetConfig = field(default_factory=PairedClevrConfig)
+    dataset: DatasetConfig = field(default_factory=PairedDspritesConfig)
     checkpoint: CheckpointsConfig = field(default_factory=CheckpointsConfig)
     metrics: MetricsConfig = field(default_factory=MetricsConfig)
