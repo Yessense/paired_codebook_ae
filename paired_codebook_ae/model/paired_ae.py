@@ -176,8 +176,9 @@ class VSADecoder(pl.LightningModule):
         self.labels = []
 
     def test_step(self, batch, batch_idx):
+        true_unbinding(self, batch)
         if batch_idx == 0:
-            true_unbinding(self, batch)
+            pass
             # reconstruction_from_one_feature(self)
         if batch_idx < 20:
             pass
