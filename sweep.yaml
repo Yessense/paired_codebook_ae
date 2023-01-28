@@ -9,7 +9,7 @@ parameters:
   model.latent_dim:
     values: [ 16, 32, 64, 128, 256, 512, 1024, 2048 ]
   experiment.max_epochs:
-    value: 200
+    value: 600
   experiment.log_training_graph:
     value: false
 
