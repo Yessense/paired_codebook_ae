@@ -4,7 +4,6 @@ import torch
 import wandb
 
 from ..codebook import vsa
-from ..model.paired_ae import VSADecoder
 
 
 # from ..model.paired_ae import VSADecoder
@@ -23,7 +22,7 @@ def reconstruction_from_codebook(paired_ae, n_samples):
         recon = paired_ae.de
 
 
-def true_unbinding(paired_ae: VSADecoder, batch):
+def true_unbinding(paired_ae, batch):
     image: torch.tensor
     image_labels: torch.tensor
     donor: torch.tensor
