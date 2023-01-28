@@ -4,6 +4,7 @@ import torch
 import wandb
 
 from ..codebook import vsa
+from ..model.paired_ae import VSADecoder
 
 
 # from ..model.paired_ae import VSADecoder
@@ -22,9 +23,51 @@ def reconstruction_from_codebook(paired_ae, n_samples):
         recon = paired_ae.de
 
 
+def true_unbinding(paired_ae: VSADecoder, batch):
+    image: torch.tensor
+    image_labels: torch.tensor
+    donor: torch.tensor
+    donor_labels: torch.tensor
+    exchange_labels: torch.tensor
 
+    (image, donor), (image_labels, donor_labels), exchange_labels = batch
 
+    image_latent = paired_ae.encoder(image)
+    donor_latent = paired_ae.encoder(donor)
 
+    image_features, image_max_values, image_attention = paired_ae.attention(image_latent)
+    # donor_features, donor_max_values,  = paired_ae.attention(donor_latent)
+
+    image_binded = paired_ae.binder(image_features)
+    # donor_like_binded = paired_ae.binder(donor_features)
+    accuracies = [0.0] * paired_ae.cfg.dataset.n_features
+
+    image_sum = torch.sum(image_binded, dim=1)
+    # for latent_vector in batch
+    for image_number, i_s in enumerate(image_sum):
+        for feature_number in range(paired_ae.cfg.dataset.n_features):
+            unbinded_feature = vsa.unbind(i_s, paired_ae.codebook.placeholders[feature_number])
+
+            sims = torch.zeros_like(paired_ae.codebook.vsa_features[feature_number]).to(
+                paired_ae.device)
+            attn = image_attention[feature_number][image_number]
+            for i, feature_value in enumerate(paired_ae.codebook.vsa_features[feature_number]):
+                sims[i] = vsa.sim(unbinded_feature, feature_value)
+
+            print(torch.argmax(sims))
+            print(torch.argmax(attn))
+
+            print(sims == attn)
+
+            accuracies[feature_number] += (sims == attn).float()
+
+    paired_ae.logger.experiment.log(
+        {f"{paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
+         range(paired_ae.cfg.dataset.n_features)})
+    # recon_image_like = paired_ae.decoder(image_like_sum)
+    # image_like = paired_ae.decoder(image_sum)
+
+    # recon_donor_like = paired_ae.decoder(donor_like_sum)
 
 
 def reconstruction_from_one_feature(paired_ae):

@@ -92,8 +92,8 @@ class VSADecoder(pl.LightningModule):
         image_latent = self.encoder(image)
         donor_latent = self.encoder(donor)
 
-        image_features, image_max_values = self.attention(image_latent)
-        donor_features, donor_max_values = self.attention(donor_latent)
+        image_features, image_max_values, _ = self.attention(image_latent)
+        donor_features, donor_max_values, _ = self.attention(donor_latent)
 
         image_with_same_donor_elements, donor_with_same_image_elements = self.exchange_module(
             image_features, donor_features, exchange_labels)

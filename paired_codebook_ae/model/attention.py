@@ -46,4 +46,4 @@ class AttentionModule(pl.LightningModule):
                   for i in range(self.n_features)]
         values = torch.stack(values, dim=1)
 
-        return values, max_values
+        return values, max_values, attention
