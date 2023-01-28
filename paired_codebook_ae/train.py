@@ -40,7 +40,7 @@ def main(cfg: VSADecoderConfig) -> None:
 
     cfg.experiment.steps_per_epoch = cfg.dataset.train_size // cfg.experiment.batch_size
 
-    model = VSADecoder(cfg=cfg, dataset_info=Dsprites.dataset_info)
+    model = VSADecoder(cfg=cfg, dataset_info=PairedClevrDatamodule.dataset_type.dataset_info)
 
     checkpoints_path = os.path.join(cfg.experiment.logging_dir, "checkpoints")
 
