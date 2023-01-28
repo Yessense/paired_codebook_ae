@@ -40,7 +40,7 @@ def main(cfg: VSADecoderConfig) -> None:
 
     # print(cfg.metrics.ckpt_path)
 
-    model = VSADecoder(cfg, dataset_info=PairedClevrDatamodule.dataset_type.dataset_info)
+    model = VSADecoder(cfg, dataset_info=PairedDspritesDatamodule.dataset_type.dataset_info)
     ckpt = torch.load(cfg.metrics.ckpt_path)
     model.load_state_dict(ckpt['state_dict'])
 
