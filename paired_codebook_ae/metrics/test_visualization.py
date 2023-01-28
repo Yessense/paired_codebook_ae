@@ -40,6 +40,7 @@ def true_unbinding(paired_ae, batch):
     image_binded = paired_ae.binder(image_features)
     # donor_like_binded = paired_ae.binder(donor_features)
     accuracies = [0.0] * paired_ae.cfg.dataset.n_features
+    diffs = [0.0] * paired_ae.cfg.dataset.n_features
 
     image_sum = torch.sum(image_binded, dim=1)
     # for latent_vector in batch
@@ -53,12 +54,15 @@ def true_unbinding(paired_ae, batch):
             for i, feature_value in enumerate(paired_ae.codebook.vsa_features[feature_number]):
                 sims[i] = vsa.sim(unbinded_feature, feature_value)
 
-            print(torch.argmax(sims))
-            print(torch.argmax(attn))
+            argmax_sims = torch.argmax(sims)
+            argmax_attn = torch.argmax(attn)
+            # print(torch.argmax(sims))
+            # print(torch.argmax(attn))
 
-            print(sims == attn)
+            # print(sims == attn)
 
-            accuracies[feature_number] += (torch.argmax(sims) == torch.argmax(attn)).float()
+            accuracies[feature_number] += (argmax_sims == argmax_attn).float()
+            diffs[feature_number] += torch.abs(argmax_sims - argmax_attn)
 
     paired_ae.logger.experiment.log(
         {f"{paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
