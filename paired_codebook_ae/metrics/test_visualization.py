@@ -39,6 +39,7 @@ def true_unbinding(paired_ae, batch):
 
     image_binded = paired_ae.binder(image_features)
     # donor_like_binded = paired_ae.binder(donor_features)
+
     accuracies = [0.0] * paired_ae.cfg.dataset.n_features
     diffs = [0.0] * paired_ae.cfg.dataset.n_features
 
@@ -65,7 +66,10 @@ def true_unbinding(paired_ae, batch):
             diffs[feature_number] += torch.abs(argmax_sims - argmax_attn)
 
     paired_ae.logger.experiment.log(
-        {f"{paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
+        {f"acc {paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
+         range(paired_ae.cfg.dataset.n_features)})
+    paired_ae.logger.experiment.log(
+        {f"diff {paired_ae.dataset_info.feature_names[i]}": diffs[i] for i in
          range(paired_ae.cfg.dataset.n_features)})
     # recon_image_like = paired_ae.decoder(image_like_sum)
     # image_like = paired_ae.decoder(image_sum)
