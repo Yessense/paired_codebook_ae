@@ -65,12 +65,18 @@ def true_unbinding(paired_ae, batch):
             accuracies[feature_number] += (argmax_sims == argmax_attn).float()
             diffs[feature_number] += torch.abs(argmax_sims - argmax_attn)
 
-    paired_ae.logger.experiment.log(
-        {f"acc {paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
-         range(paired_ae.cfg.dataset.n_features)})
-    paired_ae.logger.experiment.log(
-        {f"diff {paired_ae.dataset_info.feature_names[i]}": diffs[i] for i in
-         range(paired_ae.cfg.dataset.n_features)})
+    for i in range(paired_ae.cfg.dataset.n_features):
+        paired_ae.log(f"acc/{paired_ae.dataset_info.feature_names[i]}", accuracies[i])
+
+    for i in range(paired_ae.cfg.dataset.n_features):
+        paired_ae.log(f"diffs/{paired_ae.dataset_info.feature_names[i]}", diffs[i])
+
+    # paired_ae.logger.experiment.log(
+    #     {f"{paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
+    #      range(paired_ae.cfg.dataset.n_features)})
+    # paired_ae.logger.experiment.log(
+    #     {f"diff/{paired_ae.dataset_info.feature_names[i]}": diffs[i] for i in
+    #      range(paired_ae.cfg.dataset.n_features)})
     # recon_image_like = paired_ae.decoder(image_like_sum)
     # image_like = paired_ae.decoder(image_sum)
 
