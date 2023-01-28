@@ -58,7 +58,7 @@ def true_unbinding(paired_ae, batch):
 
             print(sims == attn)
 
-            accuracies[feature_number] += (sims == attn).float()
+            accuracies[feature_number] += (torch.argmax(sims) == torch.argmax(attn)).float()
 
     paired_ae.logger.experiment.log(
         {f"{paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
