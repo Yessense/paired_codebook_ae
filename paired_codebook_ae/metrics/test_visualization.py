@@ -47,7 +47,7 @@ def true_unbinding(paired_ae, batch):
         for feature_number in range(paired_ae.cfg.dataset.n_features):
             unbinded_feature = vsa.unbind(i_s, paired_ae.codebook.placeholders[feature_number])
 
-            sims = torch.zeros_like(paired_ae.codebook.vsa_features[feature_number]).to(
+            sims = torch.zeros(len(paired_ae.codebook.vsa_features[feature_number])).to(
                 paired_ae.device)
             attn = image_attention[feature_number][image_number]
             for i, feature_value in enumerate(paired_ae.codebook.vsa_features[feature_number]):
