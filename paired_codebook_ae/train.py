@@ -91,6 +91,8 @@ def main(cfg: VSADecoderConfig) -> None:
                 datamodule=datamodule,
                 ckpt_path=cfg.checkpoint.ckpt_path)
 
+    trainer.validate(model, datamodule=datamodule)
+
     print(f"Trained. Logging dir: {cfg.experiment.logging_dir}")
 
 

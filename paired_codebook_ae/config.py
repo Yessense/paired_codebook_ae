@@ -101,7 +101,7 @@ class ExperimentConfig:
 class CheckpointsConfig:
     save_top_k: int = 1
     every_k_epochs: int = 10
-    check_val_every_n_epochs: int = 5
+    check_val_every_n_epochs: int = 20
     ckpt_path: Optional[str] = None
 
 
