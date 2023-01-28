@@ -66,11 +66,11 @@ def true_unbinding(paired_ae, batch):
             diffs[feature_number] += torch.abs(argmax_sims - argmax_attn)
 
     for i in range(paired_ae.cfg.dataset.n_features):
-        paired_ae.log(f"acc/{paired_ae.dataset_info.feature_names[i]/ paired_ae.cfg.experiment.batch_size}", accuracies[i])
+        paired_ae.log(f"acc/{paired_ae.dataset_info.feature_names[i]}", accuracies[i] / paired_ae.cfg.experiment.batch_size)
 
 
     for i in range(paired_ae.cfg.dataset.n_features):
-        paired_ae.log(f"diffs/{paired_ae.dataset_info.feature_names[i]/ paired_ae.cfg.experiment.batch_size}", diffs[i])
+        paired_ae.log(f"diffs/{paired_ae.dataset_info.feature_names[i]}", diffs[i] / paired_ae.cfg.experiment.batch_size)
 
     # paired_ae.logger.experiment.log(
     #     {f"{paired_ae.dataset_info.feature_names[i]}": accuracies[i] for i in
