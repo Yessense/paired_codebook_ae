@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.optim import lr_scheduler
 
+from ..dataset.paired_clevr import PairedClevr
 from ..dataset._dataset_info import DatasetInfo
 from ..metrics.test_visualization import reconstruction_from_one_feature, \
     exchange_between_two_random_objects, exchange_between_two_dataset_objects, true_unbinding
@@ -35,7 +36,7 @@ class VSADecoder(pl.LightningModule):
     cfg: VSADecoderConfig
     dataset_info: DatasetInfo
 
-    def __init__(self, cfg: VSADecoderConfig, dataset_info: DatasetInfo = Dsprites.dataset_info):
+    def __init__(self, cfg: VSADecoderConfig, dataset_info: DatasetInfo = PairedClevr.dataset_info):
         super().__init__()
         self.cfg = cfg
         self.dataset_info = dataset_info
