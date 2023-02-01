@@ -1,4 +1,4 @@
-program: paired_codebook_ae.train
+program: paired_codebook_ae.calculate_metrics
 method: grid
 metric:
   goal: maximize
