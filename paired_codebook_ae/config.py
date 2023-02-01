@@ -116,6 +116,6 @@ class MetricsConfig:
 class VSADecoderConfig:
     model: ModelConfig = field(default_factory=ModelConfig)
     experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
-    dataset: DatasetConfig = field(default_factory=PairedClevrConfig)
+    dataset: DatasetConfig = field(default_factory=PairedDspritesConfig)
     checkpoint: CheckpointsConfig = field(default_factory=CheckpointsConfig)
     metrics: MetricsConfig = field(default_factory=MetricsConfig)

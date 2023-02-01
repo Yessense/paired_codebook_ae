@@ -40,10 +40,9 @@ def main(cfg: VSADecoderConfig) -> None:
 
     # print(cfg.metrics.ckpt_path)
 
-    model = VSADecoder(cfg, dataset_info=PairedDspritesDatamodule.dataset_type.dataset_info)
-    ckpt = torch.load(cfg.metrics.ckpt_path)
-    model.load_state_dict(ckpt['state_dict'])
-
+    model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
+    # ckpt = torch.load(cfg.metrics.ckpt_path)
+    # model.load_state_dict(ckpt['state_dict'])
 
     wandb_logger = WandbLogger(
         project=f"metrics_{cfg.dataset.datamodule.mode}_vsa",
