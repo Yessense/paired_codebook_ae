@@ -53,6 +53,10 @@ class Dsprites(DatasetWithInfo):
     def __getitem__(self, idx):
         img = torch.from_numpy(self.imgs[idx]).unsqueeze(0).float()
         labels = torch.from_numpy(self.labels[idx])
+        if labels[0] == 0:
+            labels[2] = int(labels[2] % 10)
+        if labels[0] == 1:
+            labels[2] = int(labels[2] % 20)
         return img, labels
 
     @staticmethod
@@ -104,3 +108,23 @@ class DspritesDatamodule(pl.LightningDataModule):
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
         return self.val_dataloader()
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    # Create an instance of the Dsprites dataset
+    dataset = Dsprites()
+
+    # Get random indices for example images
+    num_examples = 5  # Specify the number of example images to show
+    random_indices = [dataset.get_element_pos([0, 0, orient, 0, 0]) for orient in [0, 9,10,11, 19,20,21, 29,30,31, 39]]
+    # random_indices = [dataset.get_element_pos([1, 0, orient, 0, 0]) for orient in [39,0,1,  19,20,21]]
+    # random_indices = [dataset.get_element_pos([0, 0, 0, posx, 0]) for posx in range(32)]
+
+    # Iterate over the random indices and plot the example images
+    for idx in random_indices:
+        image, labels = dataset[idx]
+        plt.imshow(image.squeeze(), cmap='gray')
+        plt.title(f"Labels: {labels}")
+        plt.axis('off')
+        plt.show()

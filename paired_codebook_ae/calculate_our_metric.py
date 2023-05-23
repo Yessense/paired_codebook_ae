@@ -1,3 +1,5 @@
+import torch
+from paired_codebook_ae.model.paired_ae.model import VSADecoder
 from .config import MainConfig, PairedAEClevrSetupConfig, PairedAEDspritesSetupConfig, PairedAEModelConfig, PairedClevrDatasetConfig, PairedDspritesDatasetConfig, \
     PairedClevrDatamoduleConfig
 from .dataset.dsprites import Dsprites
@@ -49,13 +51,14 @@ def run(cfg: MainConfig) -> None:
     datamodule: pl.LightningDataModule = instantiate(
         cfg.setup.dataset.datamodule, batch_size=cfg.setup.experiment.batch_size)
 
+    ckpt = torch.load(cfg.setup.checkpoint.ckpt_path)
     # Model
-
     model = instantiate(cfg.setup.model.model_class, cfg.setup, datamodule)
+    model.load_state_dict(ckpt['state_dict'])
 
     # Logger
     wandb_logger = WandbLogger(
-        project=cfg.setup.dataset.datamodule.mode + '_vsa',
+        project=cfg.setup.dataset.datamodule.mode + '_our_metric',
         name=f'{cfg.setup.dataset.datamodule.mode} -l {cfg.setup.model.latent_dim} '
              f'-s {cfg.setup.experiment.seed} '
              f'-bs {cfg.setup.experiment.batch_size} '
@@ -69,39 +72,32 @@ def run(cfg: MainConfig) -> None:
     #     model, log_graph=cfg.setup.experiment.log_training_graph)
 
 
-    top_metric_callback = ModelCheckpoint(monitor=cfg.setup.model.monitor,
-                                          filename='best-{epoch}',
-                                          save_top_k=cfg.setup.checkpoint.save_top_k)
-    every_epoch_callback = ModelCheckpoint(every_n_epochs=cfg.setup.checkpoint.every_k_epochs,
-                                           filename='last-{epoch}')
+    # top_metric_callback = ModelCheckpoint(monitor=cfg.setup.model.monitor,
+    #                                       filename='best-{epoch}',
+    #                                       save_top_k=cfg.setup.checkpoint.save_top_k)
+    # every_epoch_callback = ModelCheckpoint(every_n_epochs=cfg.setup.checkpoint.every_k_epochs,
+    #                                        filename='last-{epoch}')
 
-    # Learning rate monitor
-    lr_monitor = LearningRateMonitor(logging_interval='step')
-    # gen_viz_callback = GeneralizationVisualizationCallback(
-    #     path_to_data_dir=cfg.dataset.path_to_dataset + '/dsprites/dsprites.npz')
+    # # Learning rate monitor
+    # lr_monitor = LearningRateMonitor(logging_interval='step')
+    # # gen_viz_callback = GeneralizationVisualizationCallback(
+    # #     path_to_data_dir=cfg.dataset.path_to_dataset + '/dsprites/dsprites.npz')
 
-    callbacks = [
+    # callbacks = [
 
-        # gen_viz_callback,
-        top_metric_callback,
-        every_epoch_callback,
-        lr_monitor,
-    ]
+    #     # gen_viz_callback,
+    #     top_metric_callback,
+    #     every_epoch_callback,
+    #     lr_monitor,
+    # ]
     # Train process
     trainer = pl.Trainer(**cfg.setup.experiment.trainer,
-                         logger=wandb_logger,
-                         callbacks=callbacks,
-                         gradient_clip_val=cfg.setup.experiment.gradient_clip)
+                         logger=wandb_logger,)
+                        #  callbacks=callbacks,
+                        #  gradient_clip_val=cfg.setup.experiment.gradient_clip)
 
-    trainer.fit(model,
-                datamodule=datamodule,
-                ckpt_path=cfg.setup.checkpoint.ckpt_path)
-
-    trainer.validate(model, datamodule=datamodule)
-    
-
-    trainer.validate(model,
-                     datamodule=datamodule)
+    trainer.test(model,
+                 datamodule=datamodule)
 
     print(f"Trained. Logging dir: {cfg.setup.experiment.logging_dir}")
 

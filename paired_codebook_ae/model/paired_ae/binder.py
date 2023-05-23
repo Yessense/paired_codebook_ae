@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from ..codebook import vsa
+from ...codebook import vsa
 
 
 class Binder(nn.Module):

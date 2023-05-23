@@ -1,0 +1,16 @@
+/.dvc
+/.vscode
+/data/
+/outputs/
+/.idea/
+__pycache__/
+/wandb/
+paired_codebook_ae/beta_vae_weights/best-epoch=599.ckpt
+paired_codebook_ae/classifier_weights/color.ckpt
+paired_codebook_ae/classifier_weights/material.ckpt
+paired_codebook_ae/classifier_weights/posX.ckpt
+paired_codebook_ae/classifier_weights/posY.ckpt
+paired_codebook_ae/classifier_weights/shape.ckpt
+paired_codebook_ae/classifier_weights/size.ckpt
+paired_codebook_ae/clevr_our_weights/40-last-epoch=599.ckpt
+paired_codebook_ae/clevr_our_weights/best-epoch=599.ckpt

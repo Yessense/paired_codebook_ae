@@ -17,16 +17,16 @@ from .dataset import PairedClevrDatamodule
 from .dataset.paired_dsprites import PairedDspritesDatamodule
 from .utils import find_best_model
 from .model.paired_ae import VSADecoder
-from .config import VSADecoderConfig
+from .config import MainConfig
 
 cs = ConfigStore.instance()
-cs.store(name="config", node=VSADecoderConfig)
+cs.store(name="config", node=MainConfig)
 
 path_to_dataset = pathlib.Path().absolute()
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
-def main(cfg: VSADecoderConfig) -> None:
+def main(cfg: MainConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
     seed_everything(cfg.experiment.seed)
     # cfg.metrics.metrics_dir = "/home/yessense/data/paired_codebook_ae/outputs/2023-01-15/21-52-26"

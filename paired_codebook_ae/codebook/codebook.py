@@ -46,9 +46,14 @@ class Codebook(nn.Module):
         self.latent_dim = latent_dim
         codebook = []
 
+
         for feature in features:
+            # if feature.name != 'Placeholders':
+            #     feature_vectors = torch.zeros((40, latent_dim),
+            #                                 dtype=torch.float32)
+            # else:
             feature_vectors = torch.zeros((feature.n_values, latent_dim),
-                                          dtype=torch.float32)
+                                        dtype=torch.float32)
 
             if feature.contiguous:
                 base_vector = vsa.generate(self.latent_dim)

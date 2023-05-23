@@ -50,10 +50,10 @@ class BaseModelConfig:
 @dataclass
 class BaseTrainerConfig:
     accelerator: str = 'gpu'
-    max_epochs: int = 1000
+    max_epochs: int = 600
     devices: List[int] = field(default_factory=lambda: [2])
     profiler: Optional[str] = None
-    check_val_every_n_epoch: int = 5
+    check_val_every_n_epoch: int = 100
 
 
 @dataclass
@@ -75,7 +75,7 @@ class BaseExperimentConfig:
 class BaseCheckpointsConfig:
     save_top_k: int = 1
     every_k_epochs: int = 5
-    check_val_every_n_epochs: int = 25
+    check_val_every_n_epochs: int = 50
     ckpt_path: Optional[str] = None
 
 # ----------------------------------------------------------------
@@ -102,7 +102,7 @@ class PairedClevrDatamoduleConfig(BaseDatamoduleConfig):
     _target_: str = 'paired_codebook_ae.dataset.PairedClevrDatamodule'
     path_to_data_dir: str = "${hydra:runtime.cwd}/data/"
     mode: str = 'paired_clevr'
-    num_workers: int = 16
+    num_workers: int = 4
 
 
 @dataclass
@@ -323,10 +323,10 @@ class BetaVAEModelConfig(BaseModelConfig):
 @dataclass
 class BetaVAETrainerConfig(BaseTrainerConfig):
     accelerator: str = 'gpu'
-    max_epochs: int = 200
-    devices: List[int] = field(default_factory=lambda: [0])
+    max_epochs: int = 600
+    devices: List[int] = field(default_factory=lambda: [2])
     profiler: Optional[str] = None
-    check_val_every_n_epoch: int = 5
+    check_val_every_n_epoch: int = 100
 
 
 @dataclass
@@ -345,7 +345,7 @@ class BetaVAEExperimentConfig(BaseExperimentConfig):
 class BetaVAECheckpointsConfig(BaseCheckpointsConfig):
     save_top_k: int = 1
     every_k_epochs: int = 5
-    check_val_every_n_epochs: int = 25
+    check_val_every_n_epochs: int = 100
     ckpt_path: Optional[str] = None
 
 
@@ -355,7 +355,7 @@ class BetaVAESetupConfig(BaseSetupConfig):
     model: BetaVAEModelConfig = field(
         default_factory=BetaVAEModelConfig)
     dataset: BaseDatasetConfig = field(
-        default_factory=PairedDspritesDatasetConfig)
+        default_factory=PairedClevrDatasetConfig)
     experiment: BetaVAEExperimentConfig = field(
         default_factory=BetaVAEExperimentConfig)
     checkpoint: BetaVAECheckpointsConfig = field(
@@ -370,17 +370,34 @@ class BetaVAESetupConfig(BaseSetupConfig):
 #     manual_seed: int = 1265
 #     devices: List[int] = field(default_factory=lambda: [0])
 
+@dataclass
+class FactorVAEModelClassConfig(BaseModelClassConfig):
+    _target_: str = "paired_codebook_ae.model.factor_vae.factor_vae_model.FactorVAEXperiment"
 
-# @dataclass
-# class FactorVAEClevrConfig(BaseExperimentConfig):
-#     z_dim: int = 10
-#     gamma: float = 10
-#     opt_g_lr: float = 0.0004
-#     opt_d_lr: float = 0.0004
-#     beta1_vae: float = 0.9
-#     beta2_vae: float = 0.999
-#     beta1_d: float = 0.5
-#     beta2_d: float = 0.9
+
+@dataclass
+class FactorVAEModelConfig(BaseModelConfig):
+    model_class: FactorVAEModelClassConfig = field(
+        default_factory=FactorVAEModelClassConfig)
+    in_channels: int = 3
+    latent_dim: int = 10
+    name: str = 'BetaVAE'
+    loss_type: str = 'B'
+    gamma: float = 10.0
+    max_capacity: int = 25
+    Capacity_max_iter: int = 100_000
+    monitor: str = "Validation/Total"
+
+@dataclass
+class FactorVAEClevrConfig(BaseExperimentConfig):
+    z_dim: int = 10
+    gamma: float = 10
+    opt_g_lr: float = 0.0004
+    opt_d_lr: float = 0.0004
+    beta1_vae: float = 0.9
+    beta2_vae: float = 0.999
+    beta1_d: float = 0.5
+    beta2_d: float = 0.9
 
 
 # @dataclass
@@ -395,30 +412,6 @@ class BetaVAESetupConfig(BaseSetupConfig):
 #     beta2_d: float = 0.9
 
 
-# @dataclass
-# class FactorVAECompareConfig(ModelCompareConfig):
-#     clevr_experiment: FactorVAEClevrConfig = field(
-#         default_factory=FactorVAEClevrConfig)
-#     dsprites_experiment: FactorVAEDspritesConfig = field(
-#         default_factory=FactorVAEDspritesConfig)
-
-
-# @dataclass
-# class BetaVAEConfig(ModelCompareConfig):
-#     beta_model: BetaVAEModelConfig = field(default_factory=BetaVAEModelConfig)
-#     data_params: BetaVAEDataParamsConfig = field(
-#         default_factory=BetaVAEDataParamsConfig)
-#     exp_params: BetaVAEExpParamsConfig = field(
-#         default_factory=BetaVAEExpParamsConfig)
-
-
-# @dataclass
-# class MetricsConfig:
-#     metrics_dir: str = "${hydra:run.dir}/"
-#     ckpt_path: str = ''
-#     n_samples: int = 4
-
-
 @dataclass
 class MainConfig:
-    setup: BaseSetupConfig = field(default_factory=ClevrClassifierResnetSetupConfig)
+    setup: BaseSetupConfig = field(default_factory=BetaVAESetupConfig)

@@ -36,11 +36,23 @@ class PairedClevr(DatasetWithInfo):
         self._size = len(os.listdir(self.scenes_dir))
         self.indices = indices
 
+        shapes = ['cube', 'cylinder', 'sphere']
+        colors = ['purple', 'cyan', 'brown', 'gray',
+                  'red', 'yellow', 'green', 'blue']
+        sizes = ['large', 'small']
+        materials = ['rubber', 'metal']
+        self.shapes_dict = {shape: idx for idx, shape in enumerate(shapes)}
+        self.colors_dict = {color: idx for idx, color in enumerate(colors)}
+        self.sizes_dict = {size: idx for idx, size in enumerate(sizes)}
+        self.materials_dict = {material: idx for idx,
+                               material in enumerate(materials)}
+
     def __len__(self):
         return self._size
 
     def __getitem__(self, idx):
-        json_path = os.path.join(self.scenes_dir, self.json_template.format(idx=idx))
+        json_path = os.path.join(
+            self.scenes_dir, self.json_template.format(idx=idx))
         with open(json_path) as json_file:
             annotations = json.load(json_file)
 
@@ -49,22 +61,24 @@ class PairedClevr(DatasetWithInfo):
         for name in ['img', 'pair']:
             img_filename = self.img_template.format(name=name, idx=idx)
             img_path = os.path.join(self.img_dir, img_filename)
-            img = read_image(img_path, mode=torchvision.io.image.ImageReadMode.RGB) / 255
+            img = read_image(
+                img_path, mode=torchvision.io.image.ImageReadMode.RGB) / 255
             images.append(img)
             label = []
             for obj in annotations:
                 if obj['image_filename'] == img_filename:
                     o = obj['objects'][0]
-                    label.append(o['shape'])
-                    label.append(o['color'])
-                    label.append(o['size'])
-                    label.append(o['material'])
+                    label.append(self.shapes_dict[o['shape']])
+                    label.append(self.colors_dict[o['color']])
+                    label.append(self.sizes_dict[o['size']])
+                    label.append(self.materials_dict[o['material']])
                     label.append(int(((o['3d_coords'][0] + 3) * 32) // 6))
                     label.append(int(((o['3d_coords'][1] + 3) * 32) // 6))
-                    labels.append(label)
+                    labels.append(torch.tensor(label))
                     break
 
-        exchange_labels = torch.zeros((self.dataset_info.n_features), dtype=bool)
+        exchange_labels = torch.zeros(
+            (self.dataset_info.n_features), dtype=bool)
 
         for i in range(self.dataset_info.n_features):
             exchange_labels[i] = labels[0][i] != labels[1][i]
@@ -104,7 +118,7 @@ class PairedClevrDatamodule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
-                          num_workers=self.num_workers,
+                          num_workers=self.num_workers, shuffle=True,
                           drop_last=True)
 
     def val_dataloader(self):
@@ -118,7 +132,8 @@ class PairedClevrDatamodule(pl.LightningDataModule):
 
 if __name__ == '__main__':
     dataset = PairedClevr(
-        dataset_dir=Path('/home/yessense/data/paired_codebook_ae/data/paired_clevr/train/'),
+        dataset_dir=Path(
+            '/home/yessense/data/paired_codebook_ae/data/paired_clevr/train/'),
         indices=list(range(10000)))
     start_idx = 300
     n_images = 2

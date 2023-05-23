@@ -5,7 +5,7 @@ from typing import Tuple
 import torch
 from torch import nn
 
-from ..utils import product
+from ...utils import product
 
 
 class Encoder(nn.Module):

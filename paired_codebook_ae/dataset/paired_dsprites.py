@@ -187,6 +187,7 @@ class PairedDspritesDatamodule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
+                          shuffle=True,
                           drop_last=True)
 
     def val_dataloader(self):

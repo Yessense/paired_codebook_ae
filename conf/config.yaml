@@ -1,11 +1,14 @@
-experiment:
-  devices:
-    - 0
+setup:
+  experiment:
+    trainer:
+      devices:
+        - 1
+      # max_epochs: 100
+  checkpoint:
+    # ckpt_path: /home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/clevr_our_weights/best-epoch=599.ckpt 
+    ckpt_path: /home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/beta_vae_weights/best-epoch=599.ckpt 
 
-metrics:
-  metrics_dir: /home/akorchemnyi/paired_codebook_ae/outputs/2023-01-15/22-23-14//
-
-#dataset:
+    
 
 
 

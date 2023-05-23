@@ -34,18 +34,15 @@ class Classifier(pl.LightningModule):
         self.contigious = self.dataset_info.is_contiguous[self.feature_index]
         self.num_classes = self.dataset_info.feature_counts[self.feature_index]
 
-        for name, param in self.model.named_parameters():
-            if 'fc' not in str(name):
-                param.requires_grad = False
         self.model = torchvision.models.resnet34(pretrained=True)
-
+        
         if self.contigious:
             self.model.fc = nn.Linear(self.model.fc.in_features, 1)
         else:
             self.model.fc = nn.Linear(self.model.fc.in_features, self.num_classes)
 
-
-        nn.init.xavier_uniform_(self.model.fc.weight)
+        torch.nn.init.xavier_uniform_(self.model.fc.weight)
+            
         self.transforms = transforms.Compose([
             transforms.Normalize(mean=self.MEAN, std=self.STD),
             transforms.Resize((224, 224)),
@@ -114,13 +111,13 @@ class Classifier(pl.LightningModule):
         batch_size = pred.shape[0]
         out = 0.
         if distance_threshold == -1:
-            return 1
+            return 1.
 
         for p, t in zip(pred, target):
             if p - distance_threshold <= t <= p + distance_threshold:
                 out += 1
         return out / batch_size
-
+            
 
     def loss_f(self, pred: Tensor, target: Tensor):
         loss = nn.CrossEntropyLoss()

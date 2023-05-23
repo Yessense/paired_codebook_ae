@@ -1,0 +1,15 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python3 -m paired_codebook_ae.train
+    deps:
+    - path: conf/config.yaml
+      md5: 08a42363ff6dbe83f6df0795bf2c8088
+      size: 30
+    - path: paired_codebook_ae/model/
+      md5: 0695eae4ad962d6578d68fb5391a6f6b.dir
+      size: 32958
+      nfiles: 14
+    - path: paired_codebook_ae/train.py
+      md5: b461d4e516f47b6d7b1f3e552ed2a68f
+      size: 3380
