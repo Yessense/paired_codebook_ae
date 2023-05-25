@@ -10,38 +10,7 @@ class CLEVRFactorVAE(nn.Module):
         super(CLEVRFactorVAE, self).__init__()
         self.z_dim = z_dim
         self.encode = Encoder(image_size, latent_dim=z_dim)
-        # self.encode = nn.Sequential(
-        #     nn.Conv2d(3, 16, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(16, 32, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(32, 32, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(32, 64, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(64, 64, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(64, 256, 4, 1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(256, 2*z_dim, 1)
-        # )
-        self.decode = Decoder(image_size, latent_dim=z_dim))
-        # self.decode = nn.Sequential(
-        #     nn.Conv2d(z_dim, 256, 1),
-        #     nn.ReLU(True),
-        #     nn.ConvTranspose2d(256, 64, 4),
-        #     nn.ReLU(True),
-        #     nn.ConvTranspose2d(64, 64, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.ConvTranspose2d(64, 32, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.ConvTranspose2d(32, 32, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.ConvTranspose2d(32, 16, 4, 2, 1),
-        #     nn.ReLU(True),
-        #     nn.ConvTranspose2d(16, 3, 4, 2, 1),
-        #     nn.Sigmoid()
-        # )
+        self.decode = Decoder(image_size, latent_dim=z_dim)
         self.weight_init()
 
     def weight_init(self, mode='normal'):
@@ -50,9 +19,10 @@ class CLEVRFactorVAE(nn.Module):
         elif mode == 'normal':
             initializer = normal_init
 
-        for block in self._modules:
-            for m in self._modules[block]:
-                initializer(m)
+        for module in self.encode.modules():
+            initializer(module)
+        for module in self.decode.modules():
+            initializer(module)
 
     def reparametrize(self, mu, logvar):
         std = logvar.mul(0.5).exp_()

@@ -213,6 +213,8 @@ class VAEXperiment(pl.LightningModule):
             log_images = lambda x: x == 0
         elif mode == 'Validation':
             log_images = lambda x: x % 10 == 0
+        elif mode == 'Test':
+            log_images = lambda x: True
         else:
             raise ValueError
 
@@ -324,6 +326,8 @@ class VAEXperiment(pl.LightningModule):
         # self.means = []
     
     def test_step(self, batch, batch_idx):
+        loss = self.step(batch, batch_idx, mode='Test')
+        return loss
         total_single = 0.
         total_entropy = 0.
         image: torch.tensor

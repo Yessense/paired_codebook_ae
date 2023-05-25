@@ -5,8 +5,7 @@ setup:
         - 1
       # max_epochs: 100
   checkpoint:
-    # ckpt_path: /home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/clevr_our_weights/best-epoch=599.ckpt 
-    ckpt_path: /home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/beta_vae_weights/best-epoch=599.ckpt 
+    ckpt_path: ""
 
     
 

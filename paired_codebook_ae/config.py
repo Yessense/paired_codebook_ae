@@ -379,19 +379,13 @@ class FactorVAEModelClassConfig(BaseModelClassConfig):
 class FactorVAEModelConfig(BaseModelConfig):
     model_class: FactorVAEModelClassConfig = field(
         default_factory=FactorVAEModelClassConfig)
-    in_channels: int = 3
     latent_dim: int = 10
-    name: str = 'BetaVAE'
-    loss_type: str = 'B'
+    name: str = 'Factor_VAE'
     gamma: float = 10.0
-    max_capacity: int = 25
-    Capacity_max_iter: int = 100_000
     monitor: str = "Validation/Total"
 
 @dataclass
 class FactorVAEClevrConfig(BaseExperimentConfig):
-    z_dim: int = 10
-    gamma: float = 10
     opt_g_lr: float = 0.0004
     opt_d_lr: float = 0.0004
     beta1_vae: float = 0.9
@@ -399,6 +393,17 @@ class FactorVAEClevrConfig(BaseExperimentConfig):
     beta1_d: float = 0.5
     beta2_d: float = 0.9
 
+@dataclass
+class FactorVAESetupConfig(BaseSetupConfig):
+    """Beta VAE """
+    model: FactorVAEModelConfig = field(
+        default_factory=FactorVAEModelConfig)
+    dataset: BaseDatasetConfig = field(
+        default_factory=PairedClevrDatasetConfig)
+    experiment: BaseExperimentConfig = field(
+        default_factory=FactorVAEClevrConfig)
+    checkpoint: BetaVAECheckpointsConfig = field(
+        default_factory=BetaVAECheckpointsConfig)
 
 # @dataclass
 # class FactorVAEDspritesConfig(BaseExperimentConfig):
@@ -415,3 +420,7 @@ class FactorVAEClevrConfig(BaseExperimentConfig):
 @dataclass
 class MainConfig:
     setup: BaseSetupConfig = field(default_factory=BetaVAESetupConfig)
+    PairedAEDspritesSetupConfig
+    PairedAEClevrSetupConfig
+    ClevrClassifierSetupConfig
+    FactorVAESetupConfig

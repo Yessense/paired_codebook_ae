@@ -11,8 +11,10 @@ import math
 import torch
 from torch import optim
 import wandb
+from paired_codebook_ae.config import FactorVAESetupConfig, MainConfig
 from paired_codebook_ae.config import MainConfig
-from paired_codebook_ae.config import MainConfig
+from paired_codebook_ae.dataset.paired_clevr import PairedClevrDatamodule
+from paired_codebook_ae.dataset.paired_dsprites import PairedDspritesDatamodule
 from paired_codebook_ae.model.factor_vae.utils import kl_divergence, permute_dims, recon_loss
 from paired_codebook_ae.utils import iou_pytorch
 
@@ -25,9 +27,12 @@ from .discriminator import Discriminator
 
 torch.autograd.set_detect_anomaly(True)
 
+
 class FactorVAEXperiment(pl.LightningModule):
     def __init__(self,
-                 cfg: MainConfig, **kwargs) -> None:
+                 cfg: FactorVAESetupConfig, 
+                 datamodule: Union[PairedClevrDatamodule, PairedDspritesDatamodule],
+                 **kwargs) -> None:
         super(FactorVAEXperiment, self).__init__()
 
         if cfg.dataset.requires_fid:
@@ -36,16 +41,11 @@ class FactorVAEXperiment(pl.LightningModule):
         else:
             self.requires_fid = False
 
-        if cfg.dataset.datamodule.mode == 'paired_clevr':
-            self.cfg = cfg.model.factor_vae.clevr_experiment
-            self.model = CLEVRFactorVAE(self.cfg.z_dim)
-        elif cfg.dataset.datamodule.mode == 'paired_dsprites':
-            self.cfg = cfg.model.factor_vae.dsprites_experiment
-            self.model = DspritesFactorVAE(self.cfg.z_dim)
-        else:
-            raise ValueError("Wrong dataset mode")
+        self.cfg = cfg
+        self.model = CLEVRFactorVAE(z_dim=self.cfg.model.latent_dim,
+                                    image_size=self.cfg.dataset.image_size)
 
-        self.discriminator = Discriminator(self.cfg.z_dim)
+        self.discriminator = Discriminator(self.cfg.model.latent_dim)
 
         self.save_hyperparameters()
 
@@ -92,7 +92,7 @@ class FactorVAEXperiment(pl.LightningModule):
         vae_kld = kl_divergence(mu, logvar)
         vae_tc_loss = (d_z[:, :1] - d_z[:, 1:]).mean()
 
-        vae_loss = vae_recon_loss + vae_kld + self.cfg.gamma * vae_tc_loss
+        vae_loss = vae_recon_loss + vae_kld + self.cfg.model.gamma * vae_tc_loss
 
         vae_loss.backward(retain_graph=True)
         optimizer_g.step()
@@ -182,7 +182,7 @@ class FactorVAEXperiment(pl.LightningModule):
         vae_kld = kl_divergence(mu, logvar)
         vae_tc_loss = (d_z[:, :1] - d_z[:, 1:]).abs().mean()
 
-        vae_loss = vae_recon_loss + vae_kld + self.cfg.gamma * vae_tc_loss
+        vae_loss = vae_recon_loss + vae_kld + self.cfg.model.gamma * vae_tc_loss
 
         vae_loss.backward(retain_graph=True)
 
@@ -265,7 +265,6 @@ class FactorVAEXperiment(pl.LightningModule):
 
         # new_batch = torch.cat((image, donor), 0)
 
-
         # self.toggle_optimizer(optimizer_g)
         x_recon, mu, logvar, z = self.model(image)
         d_z = self.discriminator(z)
@@ -274,7 +273,7 @@ class FactorVAEXperiment(pl.LightningModule):
         vae_kld = kl_divergence(mu, logvar)
         vae_tc_loss = (d_z[:, :1] - d_z[:, 1:]).mean()
 
-        vae_loss = vae_recon_loss + vae_kld + self.cfg.gamma * vae_tc_loss
+        vae_loss = vae_recon_loss + vae_kld + self.cfg.model.gamma * vae_tc_loss
 
         # self.untoggle_optimizer(optimizer_g)
 
@@ -319,11 +318,13 @@ class FactorVAEXperiment(pl.LightningModule):
 
     def configure_optimizers(self):
         opt_g = torch.optim.Adam(self.model.parameters(),
-                                 lr=self.cfg.opt_g_lr,
-                                 betas=(self.cfg.beta1_vae, self.cfg.beta2_vae))
+                                 lr=self.cfg.experiment.opt_g_lr,
+                                 betas=(self.cfg.experiment.beta1_vae,
+                                        self.cfg.experiment.beta2_vae))
         opt_d = torch.optim.Adam(
             self.discriminator.parameters(),
-            lr=self.cfg.opt_d_lr,
-            betas=(self.cfg.beta1_d, self.cfg.beta2_d)
+            lr=self.cfg.experiment.opt_d_lr,
+            betas=(self.cfg.experiment.beta1_d,
+                   self.cfg.experiment.beta2_d)
         )
         return [opt_g, opt_d], []
