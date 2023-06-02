@@ -1,6 +1,6 @@
 # Symbolic Disentangled Representations in Hyperdimensional Latent Space
 
-## Dataset
+## Datasets
 
 **DSprites paired** datasets are stored in the directory `/data/`
 
