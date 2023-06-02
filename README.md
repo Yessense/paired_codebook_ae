@@ -2,9 +2,9 @@
 
 ## Dataset
 
-dSprites datasets are stored in the directory `/data/`
+**DSprites paired** datasets are stored in the directory `/data/`
 
-[link](https://mega.nz/file/LlQQnZgA#c34zSV1UXM4NeX31T5Z22F3HPP0TdQeDXGUq5d0BC8c) to download CLEVR Paired dataset
+**CLEVR paired** can be downloaded from the [link](https://mega.nz/file/LlQQnZgA#c34zSV1UXM4NeX31T5Z22F3HPP0TdQeDXGUq5d0BC8c)
 
 ## Models
 
