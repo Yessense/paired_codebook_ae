@@ -35,10 +35,10 @@ def main(cfg: MainConfig) -> None:
     PairedDspritesDatamodule] = instantiate(cfg.dataset.datamodule)
 
     if not cfg.metrics.ckpt_path:
-        cfg.metrics.ckpt_path = find_best_model(
-            os.path.join(cfg.metrics.metrics_dir, "checkpoints"))
+        # cfg.metrics.ckpt_path = find_best_model(
+        #     os.path.join(cfg.metrics.metrics_dir, "checkpoints"))
 
-    # print(cfg.metrics.ckpt_path)
+        cfg.metrics.ckpt_path = '/home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/clevr_our_weights/best-epoch=599.ckpt'
 
     model = VSADecoder.load_from_checkpoint(cfg.metrics.ckpt_path)
     # ckpt = torch.load(cfg.metrics.ckpt_path)

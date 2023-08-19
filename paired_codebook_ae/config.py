@@ -53,7 +53,7 @@ class BaseTrainerConfig:
     max_epochs: int = 600
     devices: List[int] = field(default_factory=lambda: [2])
     profiler: Optional[str] = None
-    check_val_every_n_epoch: int = 100
+    check_val_every_n_epoch: int = 25
 
 
 @dataclass
@@ -75,7 +75,7 @@ class BaseExperimentConfig:
 class BaseCheckpointsConfig:
     save_top_k: int = 1
     every_k_epochs: int = 5
-    check_val_every_n_epochs: int = 50
+    check_val_every_n_epochs: int = 25
     ckpt_path: Optional[str] = None
 
 # ----------------------------------------------------------------
@@ -103,6 +103,7 @@ class PairedClevrDatamoduleConfig(BaseDatamoduleConfig):
     path_to_data_dir: str = "${hydra:runtime.cwd}/data/"
     mode: str = 'paired_clevr'
     num_workers: int = 4
+
 
 
 @dataclass
@@ -135,6 +136,27 @@ class PairedDspritesDatasetConfig(BaseDatasetConfig):
     image_size: Tuple[int, int, int] = (1, 64, 64)
     requires_fid: bool = False
 
+# ----------------------------------------------------------------
+# PairedCelebaConfig
+# ----------------------------------------------------------------
+
+@dataclass
+class PairedCelebaDatamoduleConfig(BaseDatamoduleConfig):
+    _target_: str = 'paired_codebook_ae.dataset.PairedCelebaDatamodule'
+    path_to_data_dir: str = "${hydra:runtime.cwd}/data/"
+    mode: str = 'paired_celeba'
+    num_workers: int = 4
+
+
+@dataclass
+class PairedCelebaDatasetConfig(BaseDatasetConfig):
+    datamodule: BaseDatamoduleConfig = field(
+        default_factory=PairedCelebaDatamoduleConfig)
+    train_size: int = 10_000
+    val_size: int = 1_000
+    n_features: int = 7
+    image_size: Tuple[int, int, int] = (3, 128, 128)
+    requires_fid: bool = True
 
 # ----------------------------------------------------------------
 # Paired AE config
@@ -179,7 +201,7 @@ class PairedAEModelConfig(BaseModelConfig):
 
 @dataclass
 class PairedAEExperimentConfig(BaseExperimentConfig):
-    seed: int = 0
+    seed: int = 2
     batch_size: int = 64
     gradient_clip: float = 0.0
     logging_dir: str = "${hydra:run.dir}/"
@@ -219,6 +241,17 @@ class PairedAEClevrSetupConfig(BaseSetupConfig):
     checkpoint: PairedAECheckpointsConfig = field(
         default_factory=PairedAECheckpointsConfig)
 
+@dataclass
+class PairedAECelebaSetupConfig(BaseSetupConfig):
+    """Paired AE Setup"""
+    model: PairedAEModelConfig = field(
+        default_factory=PairedAEModelConfig)
+    dataset: BaseDatasetConfig = field(
+        default_factory=PairedCelebaDatasetConfig)
+    experiment: PairedAEExperimentConfig = field(
+        default_factory=PairedAEExperimentConfig)
+    checkpoint: PairedAECheckpointsConfig = field(
+        default_factory=PairedAECheckpointsConfig)
 # ----------------------------------------------------------------
 # Classifier 
 # ----------------------------------------------------------------
@@ -324,7 +357,7 @@ class BetaVAEModelConfig(BaseModelConfig):
 class BetaVAETrainerConfig(BaseTrainerConfig):
     accelerator: str = 'gpu'
     max_epochs: int = 600
-    devices: List[int] = field(default_factory=lambda: [2])
+    devices: List[int] = field(default_factory=lambda: [1])
     profiler: Optional[str] = None
     check_val_every_n_epoch: int = 100
 
@@ -419,7 +452,7 @@ class FactorVAESetupConfig(BaseSetupConfig):
 
 @dataclass
 class MainConfig:
-    setup: BaseSetupConfig = field(default_factory=BetaVAESetupConfig)
+    setup: BaseSetupConfig = field(default_factory=PairedAEClevrSetupConfig)
     PairedAEDspritesSetupConfig
     PairedAEClevrSetupConfig
     ClevrClassifierSetupConfig

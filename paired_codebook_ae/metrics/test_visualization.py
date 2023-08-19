@@ -111,8 +111,8 @@ def exchange_between_two_dataset_objects(paired_ae, batch, batch_idx):
     image_latent = paired_ae.encoder(image)
     donor_latent = paired_ae.encoder(donor)
 
-    image_features, image_max_values = paired_ae.attention(image_latent)
-    donor_features, donor_max_values = paired_ae.attention(donor_latent)
+    image_features, image_max_values, _ = paired_ae.attention(image_latent)
+    donor_features, donor_max_values, _ = paired_ae.attention(donor_latent)
 
     image_with_same_donor_elements, donor_with_same_image_elements = paired_ae.exchange_module(
         image_features, donor_features, exchange_labels)

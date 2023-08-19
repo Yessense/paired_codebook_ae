@@ -51,7 +51,10 @@ def run(cfg: MainConfig) -> None:
     datamodule: pl.LightningDataModule = instantiate(
         cfg.setup.dataset.datamodule, batch_size=cfg.setup.experiment.batch_size)
 
-    ckpt = torch.load(cfg.setup.checkpoint.ckpt_path)
+    ckpt = '/home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/clevr_our_weights/best-epoch=599.ckpt'
+    # ckpt = torch.load(cfg.setup.checkpoint.ckpt_path)
+    ckpt = torch.load(ckpt)
+
     # Model
     model = instantiate(cfg.setup.model.model_class, cfg.setup, datamodule)
     model.load_state_dict(ckpt['state_dict'])

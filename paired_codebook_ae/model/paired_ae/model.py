@@ -188,41 +188,45 @@ class VSADecoder(pl.LightningModule):
         # self.latent_vectors = []
         # self.latent_features = []
         # self.labels = []
-        classifiers_dir = '/home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/classifier_weights'
-        classifier_ext = '.ckpt'
-        self.classifiers = []
+        pass
+        
+        ###################### 
+        ##### START TEST
+        # classifiers_dir = '/home/akorchemnyi/paired_codebook_ae/paired_codebook_ae/classifier_weights'
+        # classifier_ext = '.ckpt'
+        # self.classifiers = []
 
-        self.IMAGE_SIZE = 224
-        # specify ImageNet mean and standard deviation
-        self.MEAN = [0.485, 0.456, 0.406]
-        self.STD = [0.229, 0.224, 0.225]
+        # self.IMAGE_SIZE = 224
+        # # specify ImageNet mean and standard deviation
+        # self.MEAN = [0.485, 0.456, 0.406]
+        # self.STD = [0.229, 0.224, 0.225]
 
-        self.transforms = transforms.Compose([
-            transforms.Normalize(mean=self.MEAN, std=self.STD),
-            transforms.Resize((self.IMAGE_SIZE, self.IMAGE_SIZE)),
-        ])
+        # self.transforms = transforms.Compose([
+        #     transforms.Normalize(mean=self.MEAN, std=self.STD),
+        #     transforms.Resize((self.IMAGE_SIZE, self.IMAGE_SIZE)),
+        # ])
 
-        for contigious, num_classes, name in zip(self.dataset_info.is_contiguous,
-                                                 self.dataset_info.feature_counts,
-                                                 self.dataset_info.feature_names):
-            classifier = torchvision.models.resnet34()
+        # for contigious, num_classes, name in zip(self.dataset_info.is_contiguous,
+        #                                          self.dataset_info.feature_counts,
+        #                                          self.dataset_info.feature_names):
+        #     classifier = torchvision.models.resnet34()
 
-            if contigious:
-                classifier.fc = nn.Linear(classifier.fc.in_features, 1)
-            else:
-                classifier.fc = nn.Linear(
-                    classifier.fc.in_features, num_classes)
-            path = f'{classifiers_dir}/{name}{classifier_ext}'
-            state_dict = torch.load(path)['state_dict']
-            state_dict = {key[len("model."):]: value for key, value in state_dict.items(
-            ) if key.startswith("model")}
-            classifier.load_state_dict(state_dict)
-            classifier.to(self.device)
-            self.classifiers.append(classifier)
+        #     if contigious:
+        #         classifier.fc = nn.Linear(classifier.fc.in_features, 1)
+        #     else:
+        #         classifier.fc = nn.Linear(
+        #             classifier.fc.in_features, num_classes)
+        #     path = f'{classifiers_dir}/{name}{classifier_ext}'
+        #     state_dict = torch.load(path)['state_dict']
+        #     state_dict = {key[len("model."):]: value for key, value in state_dict.items(
+        #     ) if key.startswith("model")}
+        #     classifier.load_state_dict(state_dict)
+        #     classifier.to(self.device)
+        #     self.classifiers.append(classifier)
 
     def test_step(self, batch, batch_idx):
-        total_single = 0.
-        total_entropy = 0.
+        # total_single = 0.
+        # total_entropy = 0.
         image: torch.tensor
         image_labels: torch.tensor
         donor: torch.tensor
@@ -231,30 +235,30 @@ class VSADecoder(pl.LightningModule):
 
         (image, donor), (image_labels, donor_labels), exchange_labels = batch
 
-        images = torch.cat((image, donor), 0)
-        image_labels = torch.cat((image_labels, donor_labels), 0)
-        batch_size = image_labels.shape[0]
-        image_latent = self.encoder(images)
+        # images = torch.cat((image, donor), 0)
+        # image_labels = torch.cat((image_labels, donor_labels), 0)
+        # batch_size = image_labels.shape[0]
+        # image_latent = self.encoder(images)
 
-        # 64, 6, 1024
-        image_features, image_max_values, _ = self.attention(image_latent)
+        # # 64, 6, 1024
+        # image_features, image_max_values, _ = self.attention(image_latent)
 
-        image_like_binded = self.binder(image_features)
-        recon_image_like = self.decoder(torch.sum(image_like_binded, dim=1))
+        # image_like_binded = self.binder(image_features)
+        # recon_image_like = self.decoder(torch.sum(image_like_binded, dim=1))
 
-        default_labels = torch.zeros_like(image_labels, dtype=float)
-        for i, (classifier, contiguous) in enumerate(zip(self.classifiers, self.dataset_info.is_contiguous)):
-            with torch.no_grad():
-                pred = classifier(recon_image_like)
-            if contiguous:
+        # default_labels = torch.zeros_like(image_labels, dtype=float)
+        # for i, (classifier, contiguous) in enumerate(zip(self.classifiers, self.dataset_info.is_contiguous)):
+        #     with torch.no_grad():
+        #         pred = classifier(recon_image_like)
+        #     if contiguous:
 
-                # torch.clip(pred.squeeze(), min=0., max=1.)
-                default_labels[:, i] = pred.squeeze()
-            else:
-                default_labels[:, i] = torch.argmax(pred, dim=1)
+        #         # torch.clip(pred.squeeze(), min=0., max=1.)
+        #         default_labels[:, i] = pred.squeeze()
+        #     else:
+        #         default_labels[:, i] = torch.argmax(pred, dim=1)
 
-        print(
-            f'Total accuracy: {torch.mean((default_labels[:, :4] == image_labels[:, :4]).float())}')
+        # print(
+        #     f'Total accuracy: {torch.mean((default_labels[:, :4] == image_labels[:, :4]).float())}')
         # classify
 
         # for i, (classifier, contiguous) in enumerate(zip(self.classifiers, self.dataset_info.is_contiguous)):
@@ -279,86 +283,86 @@ class VSADecoder(pl.LightningModule):
         #         self.log_dict(
         #             {f"Test/{self.dataset_info.feature_names[i]}_class_acc": metrics})
 
-        for j, vsa_vectors in enumerate(self.codebook.vsa_features):
-            # -> (64, 32, 6)
+        # for j, vsa_vectors in enumerate(self.codebook.vsa_features):
+        #     # -> (64, 32, 6)
 
-            metric_arr = torch.zeros(batch_size, vsa_vectors.shape[0], len(
-                self.classifiers)).to(self.device)
-            space_entropy_vec = torch.zeros(
-                len(self.classifiers)).to(self.device)
+        #     metric_arr = torch.zeros(batch_size, vsa_vectors.shape[0], len(
+        #         self.classifiers)).to(self.device)
+        #     space_entropy_vec = torch.zeros(
+        #         len(self.classifiers)).to(self.device)
 
-            for k, vector in enumerate(vsa_vectors):
+        #     for k, vector in enumerate(vsa_vectors):
 
-                vector = vector.unsqueeze(0).repeat(batch_size, 1)
-                changed_image_features = image_features.clone()
-                changed_image_features[:, j] = vector
+        #         vector = vector.unsqueeze(0).repeat(batch_size, 1)
+        #         changed_image_features = image_features.clone()
+        #         changed_image_features[:, j] = vector
 
-                changed_binded = self.binder(changed_image_features)
-                changed_recon_image = self.decoder(
-                    torch.sum(changed_binded, dim=1))
+        #         changed_binded = self.binder(changed_image_features)
+        #         changed_recon_image = self.decoder(
+        #             torch.sum(changed_binded, dim=1))
 
-                entropy_vec = torch.zeros(
-                    len(self.classifiers)).to(self.device)
+        #         entropy_vec = torch.zeros(
+        #             len(self.classifiers)).to(self.device)
 
-                for i, (classifier, contiguous) in enumerate(zip(self.classifiers, self.dataset_info.is_contiguous)):
-                    with torch.no_grad():
-                        pred = classifier(changed_recon_image)
+        #         for i, (classifier, contiguous) in enumerate(zip(self.classifiers, self.dataset_info.is_contiguous)):
+        #             with torch.no_grad():
+        #                 pred = classifier(changed_recon_image)
 
-                    labels = default_labels[:, i]
+        #             labels = default_labels[:, i]
 
-                    if contiguous:
-                        pred_labels = self.classify_average_precision(
-                            pred.squeeze(), labels, 0.5)
-                        metric_arr[:, k, i] = pred_labels
+        #             if contiguous:
+        #                 pred_labels = self.classify_average_precision(
+        #                     pred.squeeze(), labels, 0.5)
+        #                 metric_arr[:, k, i] = pred_labels
 
-                        # labels = labels.float() / (self.dataset_info.feature_counts[i] - 1)
+        #                 # labels = labels.float() / (self.dataset_info.feature_counts[i] - 1)
 
-                        # self.log_dict({f"Test/{self.dataset_info.feature_names[self.feature_index]}_reg_acc@0.1": self.calculate_map(pred, labels, 0.1)})
-                        # self.log_dict({f"Test/{self.dataset_info.feature_names[i]}_reg_acc@0.25":self.calculate_map(pred, labels, 0.25)})
-                        metrics = self.calculate_map(pred, labels, 0.5)
-                        self.log_dict(
-                            {f"Test/{self.dataset_info.feature_names[i]}_reg_acc@0.5": metrics})
-                        # self.log_dict({f"Test/{self.dataset_info.feature_names[i]}_reg_acc@-1": self.calculate_map(pred, labels, -1)})
-                        entropy_vec[i] += metrics
-                    else:
-                        pred_labels = torch.argmax(pred, dim=1)
-                        metric_arr[:, k, i] = (pred_labels == labels).long()
+        #                 # self.log_dict({f"Test/{self.dataset_info.feature_names[self.feature_index]}_reg_acc@0.1": self.calculate_map(pred, labels, 0.1)})
+        #                 # self.log_dict({f"Test/{self.dataset_info.feature_names[i]}_reg_acc@0.25":self.calculate_map(pred, labels, 0.25)})
+        #                 metrics = self.calculate_map(pred, labels, 0.5)
+        #                 self.log_dict(
+        #                     {f"Test/{self.dataset_info.feature_names[i]}_reg_acc@0.5": metrics})
+        #                 # self.log_dict({f"Test/{self.dataset_info.feature_names[i]}_reg_acc@-1": self.calculate_map(pred, labels, -1)})
+        #                 entropy_vec[i] += metrics
+        #             else:
+        #                 pred_labels = torch.argmax(pred, dim=1)
+        #                 metric_arr[:, k, i] = (pred_labels == labels).long()
 
-                        metrics_cls = MulticlassAccuracy(
-                            num_classes=self.dataset_info.feature_counts[i], average='micro').to(self.device)
-                        metrics = metrics_cls(pred, labels)
+        #                 metrics_cls = MulticlassAccuracy(
+        #                     num_classes=self.dataset_info.feature_counts[i], average='micro').to(self.device)
+        #                 metrics = metrics_cls(pred, labels)
 
-                        self.log_dict(
-                            {f"Test/{self.dataset_info.feature_names[i]}_class_acc": metrics})
-                        entropy_vec[i] += metrics
+        #                 self.log_dict(
+        #                     {f"Test/{self.dataset_info.feature_names[i]}_class_acc": metrics})
+        #                 entropy_vec[i] += metrics
 
-                space_entropy_vec += (1 - entropy_vec)
+        #         space_entropy_vec += (1 - entropy_vec)
 
-            single_metric = metric_arr.sum(dim=(1, 2)) / metric_arr.shape[1]
+        #     single_metric = metric_arr.sum(dim=(1, 2)) / metric_arr.shape[1]
 
-            single_metric = torch.abs(single_metric - 1).mean()
-            total_single += single_metric
+        #     single_metric = torch.abs(single_metric - 1).mean()
+        #     total_single += single_metric
 
-            # print(single_metric)
+        #     # print(single_metric)
 
-            # print(1 - entropy_vec)
-            # print("")
+        #     # print(1 - entropy_vec)
+        #     # print("")
 
-            space_entropy_vec /= len(vsa_vectors)
-            t = 10
-            probs = F.softmax(space_entropy_vec * t, dim=0)
-            entropy_value = -torch.sum(probs * torch.log(probs))
-            total_entropy += entropy_value
-            print(
-                f'{j}. Entropy vec: {space_entropy_vec}, probs: {probs}\n\t, entropy value: {entropy_value: 0.2f}, single: {single_metric.item(): 0.2f}')
+        #     space_entropy_vec /= len(vsa_vectors)
+        #     t = 10
+        #     probs = F.softmax(space_entropy_vec * t, dim=0)
+        #     entropy_value = -torch.sum(probs * torch.log(probs))
+        #     total_entropy += entropy_value
+        #     print(
+        #         f'{j}. Entropy vec: {space_entropy_vec}, probs: {probs}\n\t, entropy value: {entropy_value: 0.2f}, single: {single_metric.item(): 0.2f}')
             
 
-            self.log_dict(
-                {f"Test/{self.dataset_info.feature_names[j]}_entropy_val": entropy_value})
-            self.log_dict(
-                {f"Test/{self.dataset_info.feature_names[j]}_single_val": single_metric})
-        self.log('single', total_single / len(self.classifiers))
-        self.log('entropy', total_entropy / len(self.classifiers))
+        #     self.log_dict(
+        #         {f"Test/{self.dataset_info.feature_names[j]}_entropy_val": entropy_value})
+        #     self.log_dict(
+        #         {f"Test/{self.dataset_info.feature_names[j]}_single_val": single_metric})
+        # self.log('single', total_single / len(self.classifiers))
+        # self.log('entropy', total_entropy / len(self.classifiers))
 
         # for name, num_classes, contiguous, classifier in zip(self.dataset_info.feature_names,
         #                              self.dataset_info.feature_counts,
@@ -369,36 +373,47 @@ class VSADecoder(pl.LightningModule):
 
         # features =
 
-        # true_unbinding(self, batch)
-        # if batch_idx == 0:
-        # pass
-        # reconstruction_from_one_feature(self)
+        if batch_idx <= 0 or batch_idx >= 5:
+            return
+
+        true_unbinding(self, batch)
+
+        reconstruction_from_one_feature(self)
         # if batch_idx < 20:
         # pass
-        # exchange_between_two_dataset_objects(self, batch, batch_idx)
+        exchange_between_two_dataset_objects(self, batch, batch_idx)
 
-        # for i in range(n_samples):
-        #     self.logger.experiment.log({
-        #         "image": [wandb.Image(image[i], caption='Image')]
-        #     }, commit=False)
-        #     for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
-        #         img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
-        #                                 self.cfg.dataset.n_features,
-        #                                 self.cfg.model.latent_dim).to(self.device)
-        #
-        #         for feature_number, feature_value in enumerate(
-        #                 self.codebook.vsa_features[feature_idx]):
-        #             img_batch[feature_number] = image_features[i]
-        #             img_batch[feature_number, feature_idx] = feature_value
-        #
-        #         img_batch = self.binder(img_batch)
-        #         img_batch = torch.sum(img_batch, dim=1)
-        #         img_batch = self.decoder(img_batch)
-        #         commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
-        #         self.logger.experiment.log({
-        #             feature_name: [wandb.Image(im) for im in img_batch]
-        #         }, commit=commit)
-        # return
+        n_samples = 1
+
+        image_latent = self.encoder(image)
+        donor_latent = self.encoder(donor)
+        image_features, image_max_values, _ = self.attention(image_latent)
+        donor_features, donor_max_values, _ = self.attention(donor_latent)
+
+        for i in range(n_samples):
+            self.logger.experiment.log({
+                "image": [wandb.Image(image[i], caption='Image')]
+            }, commit=False)
+            # For each feature
+            for feature_idx, feature_name in enumerate(self.dataset_info.feature_names):
+
+                img_batch = torch.zeros(len(self.codebook.vsa_features[feature_idx]),
+                                        self.cfg.dataset.n_features,
+                                        self.cfg.model.latent_dim).to(self.device)
+        
+                for feature_number, feature_value in enumerate(
+                        self.codebook.vsa_features[feature_idx]):
+                    img_batch[feature_number] = image_features[i]
+                    img_batch[feature_number, feature_idx] = feature_value
+        
+                img_batch = self.binder(img_batch)
+                img_batch = torch.sum(img_batch, dim=1)
+                img_batch = self.decoder(img_batch)
+                commit = feature_idx == (len(self.dataset_info.feature_names) - 1)
+                self.logger.experiment.log({
+                    feature_name: [wandb.Image(im) for im in img_batch]
+                }, commit=commit)
+        return
 
     def calculate_map(self, pred: Tensor, target: Tensor, distance_threshold: float) -> float:
         assert distance_threshold <= 1 and distance_threshold >= 0. or distance_threshold == -1
